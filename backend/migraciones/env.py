@@ -1,8 +1,5 @@
-from logging.config import fileConfig
-
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 from alembic import context
 
 # this is the Alembic Config object, which provides
@@ -20,7 +17,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Base_de_Datos.db import Base
 from Modelos.Usuario import Usuario
-from Modelos.Roles import Rol
+from Modelos.Rol import Rol
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

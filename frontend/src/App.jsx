@@ -1,18 +1,8 @@
-import { useState } from 'react'
-import LoginForm from './components/LoginForm'
-import RegisterForm from './components/RegisterForm'
+import AuthView from './views/AuthView'
 
 function App() {
-  const [view, setView] = useState('login')
-
   return (
-    <div>
-      {view === 'login' ? (
-        <LoginForm onSwitch={(target) => setView(target)} />
-      ) : (
-        <RegisterForm onSwitch={(target) => setView(target)} />
-      )}
-    </div>
+    <AuthView />
   )
 }
 

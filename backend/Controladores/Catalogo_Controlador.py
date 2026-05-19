@@ -1,27 +1,36 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, UploadFile, File, Form, status
 from sqlalchemy.orm import Session
-from Base_de_Datos.db_session import get_db
 from Servicios.CatalogoServicio import CatalogoServicio
-from Esquemas.CartasEsquema import Carta as CartaEsquema
+from Base_de_Datos.db_session import get_db
+from Esquemas.CartasEsquema import Carta as CartaEsquema, CartaCreate
 
-router = APIRouter(prefix="/catalogo", tags=["catalogo"])
+router = APIRouter(
+    prefix="/catalog",
+    tags=["catalog"],
+)
 
-# ----------------------------------------------------------------------
-# Endpoint: agregar nueva carta al catálogo
-# ----------------------------------------------------------------------
-@router.post("/cartas", response_model=CartaEsquema, status_code=status.HTTP_201_CREATED)
+servicio_catalogo = CatalogoServicio()
+
+@router.post("/cards", response_model=CartaEsquema, status_code=status.HTTP_201_CREATED)
 def agregar_carta_al_catalogo(
-        nombre: str = Form(...),
-        numero: int = Form(...),
-        set_name: str = Form(...),
-        imagen: UploadFile = File(...),
-        db: Session = Depends(get_db)
-    ):
-    resultado = CatalogoServicio.agregar_carta(
-        db=db,
-        nombre=nombre,
+    numero: str = Form(...),
+    set_name: str = Form(...),
+    edicion: str = Form(...),
+    idioma: str = Form(...),
+    acabado: str = Form(...),
+    imagen: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    # Endpoint para agregar una nueva carta al catálogo.
+    carta_data = CartaCreate(
         numero=numero,
         set_name=set_name,
+        edicion=edicion,
+        idioma=idioma,
+        acabado=acabado
+    )
+    return servicio_catalogo.agregar_carta(
+        db=db,
+        carta_data=carta_data,
         imagen=imagen
     )
-    return resultado

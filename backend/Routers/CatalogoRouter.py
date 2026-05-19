@@ -13,7 +13,7 @@ servicio_catalogo = CatalogoServicio()
 
 @router.post("/cards", response_model=CartaEsquema, status_code=status.HTTP_201_CREATED)
 def agregar_carta_al_catalogo(
-    numero: int = Form(...),
+    numero: str = Form(...),
     set_name: str = Form(...),
     edicion: str = Form(...),
     idioma: str = Form(...),

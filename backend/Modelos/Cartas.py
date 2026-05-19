@@ -6,7 +6,7 @@ class Carta(Base):
     __tablename__ = "cartas"
 
     id = Column(Integer, primary_key=True, index=True)
-    numero = Column(Integer, nullable=False)
+    numero = Column(String(50), nullable=False)
     set_name = Column(String(100), nullable=False)
     edicion = Column(String(100), nullable=False)
     idioma = Column(String(50), nullable=False)

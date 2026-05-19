@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 class CartaBase(BaseModel):
-    numero: int
+    numero: str
     set_name: str
     edicion: str
     idioma: str

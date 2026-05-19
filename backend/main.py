@@ -14,3 +14,5 @@ def read_root():
     return {"message": "¡API funcionando correctamente!"}
 
 # --- REGISTRO DE ROUTERS ---
+from Routers import CatalogoRouter
+app.include_router(CatalogoRouter.router)

@@ -19,6 +19,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Base_de_Datos.db import Base
 from Modelos.Usuario import Usuario
 from Modelos.Rol import Rol
+from Modelos.Cartas import Carta
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

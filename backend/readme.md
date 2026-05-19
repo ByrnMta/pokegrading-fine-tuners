@@ -61,7 +61,7 @@ uvicorn main:app --reload
 	```
 	alembic upgrade head
 	```
-**Nota:** si da problemas haciendo la migración, guarde el archivo env.py y elimine la carpeta de versions, ejecute el comando 1 de esta sección y pegue nuevamente el archivo env.py. Y ejecute los pasos 2 y 3.
+**Nota:** si da problemas haciendo la migración, elimine la carpeta de versions, ejecute el comando 2 de esta sección y luego el 3.
 
 ---
 

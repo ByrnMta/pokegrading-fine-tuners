@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Form, request
+from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from sqlalchemy.orm import Session
-from database import get_db
-from Servicios.Usuario_Servicio import registrar_usuario_servicio
+from Base_de_Datos.db_session import get_db
+from Servicios.Usuario_Servicio import UsuarioServicio
 import os
 import socket
 
@@ -19,7 +19,7 @@ def registrar_usuario(
     ):
 
     # Se llama al servicio de registro de usuario nuevo
-    resultado = registrar_usuario_servicio(
+    resultado = UsuarioServicio.registrar_usuario_servicio(
         db=db, 
         nombre_usuario=nombre_usuario, 
         correo=correo, 

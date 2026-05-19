@@ -18,9 +18,10 @@ if config.config_file_name is not None:
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from Base_de_Datos.db import Base
+from Base_de_Datos.db import Base, DATABASE_URL
 from Modelos.Usuario import Usuario
 from Modelos.Roles import Rol
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

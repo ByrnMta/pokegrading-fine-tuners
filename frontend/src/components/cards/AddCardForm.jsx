@@ -9,7 +9,7 @@ function getExt(name) {
 }
 
 export default function AddCardForm({ onSuccess = () => { } }) {
-    const [form, setForm] = useState({ set: '', number: '', edition: '', language: '', finish: '' })
+    const [form, setForm] = useState({ set_name: '', numero: '', edicion: '', idioma: '', acabado: '' })
     const [file, setFile] = useState(null)
     const [errors, setErrors] = useState({})
     const [submitting, setSubmitting] = useState(false)
@@ -17,17 +17,18 @@ export default function AddCardForm({ onSuccess = () => { } }) {
     // Validación de campos antes de enviar al servidor, muestra advertencia para cada campo
     const validateFields = () => {
         const err = {}
-        if (!form.set) err.set = 'Requerido'
-        if (!form.number) err.number = 'Requerido'
-        if (!form.edition) err.edition = 'Requerido'
-        if (!form.language) err.language = 'Requerido'
-        if (!form.finish) err.finish = 'Requerido'
-        if (!file) err.image = 'Debe adjuntar una imagen de referencia'
+
+        if (!form.set_name) err.set_name = 'Requerido'
+        if (!form.numero) err.numero = 'Requerido'
+        if (!form.edicion) err.edicion = 'Requerido'
+        if (!form.idioma) err.idioma = 'Requerido'
+        if (!form.acabado) err.acabado = 'Requerido'
+        if (!file) err.imagen = 'Debe adjuntar una imagen de referencia'
 
         if (file) {
             const ext = getExt(file.name)
             if (!ALLOWED_EXT.includes(ext)) {
-                err.image = 'Formato no soportado. Use jpeg, png o heic.'
+                err.imagen = 'Formato no soportado. Use jpeg, png o heic.'
             }
         }
 
@@ -38,13 +39,13 @@ export default function AddCardForm({ onSuccess = () => { } }) {
     const handleFile = async (ev) => {
         const f = ev.target.files?.[0] || null
         setFile(null)
-        setErrors((e) => ({ ...e, image: undefined }))
+        setErrors((e) => ({ ...e, imagen: undefined }))
         if (!f) return
         
         // Valida la extension del archivo (formato)
         const ext = getExt(f.name)
         if (!ALLOWED_EXT.includes(ext)) {
-            setErrors((e) => ({ ...e, image: 'Formato no soportado. Use jpeg, png o heic.' }))
+            setErrors((e) => ({ ...e, imagen: 'Formato no soportado. Use jpeg, png o heic.' }))
             return
         }
         setFile(f)
@@ -77,17 +78,17 @@ export default function AddCardForm({ onSuccess = () => { } }) {
             
             // Obtiene los datos del formulario y el archivo para la solicitud
             const fd = new FormData()
-            fd.append('set', form.set)
-            fd.append('number', form.number)
-            fd.append('edition', form.edition)
-            fd.append('language', form.language)
-            fd.append('finish', form.finish)
-            fd.append('image', file)
+            fd.append('numero', form.numero)
+            fd.append('set_name', form.set_name)
+            fd.append('edicion', form.edicion)
+            fd.append('idioma', form.idioma)
+            fd.append('acabado', form.acabado)
+            fd.append('imagen', file)
 
             // Envía la solicitud al backend para crear la carta, maneja la respuesta y errores
             const res = await postCard(fd)
             onSuccess(res)
-            setForm({ set: '', number: '', edition: '', language: '', finish: '' })
+            setForm({ set_name: '', numer: '', edicion: '', idioma: '', acabado: '' })
             setFile(null)
         } catch (err) {
             // Genera mensaje de error con preferencia a respuesta del backend, si no muestra mensaje genérico
@@ -112,32 +113,32 @@ export default function AddCardForm({ onSuccess = () => { } }) {
                 <div className="space-y-3">
                     <label className="flex flex-col">
                         <span className="text-sm">Set *</span>
-                        <input name="set" value={form.set} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
-                        {errors.set && <small className="text-rose-400">{errors.set}</small>}
+                        <input name="set_name" value={form.set_name} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
+                        {errors.set_name && <small className="text-rose-400">{errors.set_name}</small>}
                     </label>
 
                     <label className="flex flex-col">
                         <span className="text-sm">Número *</span>
-                        <input name="number" value={form.number} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
-                        {errors.number && <small className="text-rose-400">{errors.number}</small>}
+                        <input name="numero" value={form.numero} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
+                        {errors.numero && <small className="text-rose-400">{errors.numero}</small>}
                     </label>
 
                     <label className="flex flex-col">
                         <span className="text-sm">Edición *</span>
-                        <input name="edition" value={form.edition} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
-                        {errors.edition && <small className="text-rose-400">{errors.edition}</small>}
+                        <input name="edicion" value={form.edicion} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
+                        {errors.edicion && <small className="text-rose-400">{errors.edicion}</small>}
                     </label>
 
                     <label className="flex flex-col">
                         <span className="text-sm">Idioma *</span>
-                        <input name="language" value={form.language} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
-                        {errors.language && <small className="text-rose-400">{errors.language}</small>}
+                        <input name="idioma" value={form.idioma} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
+                        {errors.idioma && <small className="text-rose-400">{errors.idioma}</small>}
                     </label>
 
                     <label className="flex flex-col">
                         <span className="text-sm">Acabado *</span>
-                        <input name="finish" value={form.finish} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
-                        {errors.finish && <small className="text-rose-400">{errors.finish}</small>}
+                        <input name="acabado" value={form.acabado} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
+                        {errors.acabado && <small className="text-rose-400">{errors.acabado}</small>}
                     </label>
                 </div>
 
@@ -145,7 +146,7 @@ export default function AddCardForm({ onSuccess = () => { } }) {
                     <label className="flex flex-col">
                         <span className="text-sm">Imagen de referencia (JPEG, PNG, HEIC) *</span>
                         <input type="file" accept=".jpg,.jpeg,.png,.heic,.heif,image/*" onChange={handleFile} className="mt-2 block w-full cursor-pointer rounded-md border border-white/10 bg-gray-700 px-4 py-3 text-sm text-white file:mr-4 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-1 file:text-white hover:bg-gray-600" />
-                        {errors.image && <small className="text-rose-400">{errors.image}</small>}
+                        {errors.imagen && <small className="text-rose-400">{errors.imagen}</small>}
                     </label>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                         <button

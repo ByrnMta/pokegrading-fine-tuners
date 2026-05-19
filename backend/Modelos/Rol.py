@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from Base_de_Datos.db import Base
 
+# Modelo de Rol, con sus atributos y relaciones (para la base de datos)
 class Rol(Base):
     __tablename__ = "rol"
 

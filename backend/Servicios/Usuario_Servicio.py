@@ -30,15 +30,15 @@ class UsuarioServicio:
             contrasena_hashed = UsuarioServicio.pwd_context.hash(contrasena)
             rol_id = 2  # Asignar rol de submitter por defecto
 
-            # Se crea un nuevo usuario
+            # Se crea el usuario en la base de datos
             nuevo_usuario = Usuario(
                 rol_id=rol_id,
                 nombre_usuario=nombre_usuario,
                 correo=correo,
                 contrasena=contrasena_hashed
             )
-            db.add(nuevo_usuario)
-            db.commit()
+            db.add(nuevo_usuario) # se agrega el nuevo usuario a la sesión de la base de datos
+            db.commit() # se confirma la transacción
             db.refresh(nuevo_usuario)
 
             return {"mensaje": "Usuario registrado exitosamente"}

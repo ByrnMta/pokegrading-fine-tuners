@@ -26,5 +26,6 @@ def registrar_usuario(
         contrasena=contrasena
     )
     if 'errores' in resultado:
+        # Si el servicio devuelve errores, se lanza una excepción HTTP con el detalle de los errores
         raise HTTPException(status_code=400, detail=resultado['errores'])
     return resultado

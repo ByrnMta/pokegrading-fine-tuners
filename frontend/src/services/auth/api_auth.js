@@ -13,6 +13,10 @@ export async function login(data) {
  * @param {{nombre_usuario: string, correo: string, contrasena: string}} data
  */
 export async function register(data) {
-  return postJson('/usuario/registro', data)
+  const formData = new FormData();
+  formData.append('nombre_usuario', data.nombre_usuario);
+  formData.append('correo', data.correo);
+  formData.append('contrasena', data.contrasena);
+  return postJson('/usuario/registro', formData, {}, true);
 }
 

@@ -1,6 +1,3 @@
-"""
-Servicio de catálogo: validaciones y persistencia de cartas.
-"""
 import io
 import os
 import uuid
@@ -25,6 +22,10 @@ MIN_WIDTH = 600
 MIN_HEIGHT = 800
 
 
+
+"""
+Servicio de catálogo: validaciones y persistencia de cartas.
+"""
 class CatalogoServicio:
     """Servicio que implementa la lógica para agregar cartas al catálogo."""
 
@@ -34,7 +35,35 @@ class CatalogoServicio:
         self.upload_dir = upload_dir
         os.makedirs(self.upload_dir, exist_ok=True)
 
-    def _validar_imagen(self, imagen: UploadFile) -> None:
+    #============================= Lógica endpoints =============================
+
+    @staticmethod
+    def agregar_carta(db: Session, carta_data: CartaCreate, imagen: UploadFile) -> dict:
+        """Agrega una carta al catálogo tras validar imagen y duplicados.
+
+        Retorna el registro creado (ORM object compatible con Pydantic).
+        """
+        # Validaciones de imagen
+        CatalogoServicio._validar_imagen(imagen)
+
+        repositorio = CartasRepositorio()
+        carta_existente = repositorio.get_carta_by_identidad(db, carta=carta_data)
+        if carta_existente:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="La carta con la misma combinación de set, número, edición, idioma y acabado ya existe.",
+            )
+
+        # Persistir
+        ruta_imagen = CatalogoServicio._guardar_imagen(imagen)
+        nuevo = repositorio.create_carta(db=db, carta=carta_data, image_path=ruta_imagen)
+        return nuevo
+
+
+    #============================= Validaciones =============================
+
+    @staticmethod
+    def _validar_imagen(imagen: UploadFile) -> None:
         """Valida existencia, extensión, tamaño y resolución mínima de la imagen.
 
         Lanza HTTPException en caso de fallo.
@@ -83,7 +112,11 @@ class CatalogoServicio:
             # Si no se puede abrir la imagen la rechazamos
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No se pudo procesar la imagen. Formato o contenido inválido.")
 
-    def _guardar_imagen(self, imagen: UploadFile) -> str:
+
+    #============================= Utilidades =============================
+    
+    @staticmethod
+    def _guardar_imagen(imagen: UploadFile) -> str:
         """Guarda imagen en disco y devuelve la ruta relativa.
 
         Lanza HTTPException si ocurre un error de escritura.
@@ -91,7 +124,9 @@ class CatalogoServicio:
         try:
             extension = imagen.filename.rsplit('.', 1)[-1].lower()
             nombre_archivo = f"{uuid.uuid4()}.{extension}"
-            ruta_archivo = os.path.join(self.upload_dir, nombre_archivo)
+            upload_dir = "uploads"
+            os.makedirs(upload_dir, exist_ok=True)
+            ruta_archivo = os.path.join(upload_dir, nombre_archivo)
 
             imagen.file.seek(0)
             with open(ruta_archivo, "wb") as f:
@@ -100,24 +135,4 @@ class CatalogoServicio:
             return ruta_archivo
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error al guardar la imagen: {e}")
-
-    def agregar_carta(self, db: Session, carta_data: CartaCreate, imagen: UploadFile) -> dict:
-        """Agrega una carta al catálogo tras validar imagen y duplicados.
-
-        Retorna el registro creado (ORM object compatible con Pydantic).
-        """
-        # Validaciones de imagen
-        self._validar_imagen(imagen)
-
-        # Duplicados por tupla de identidad
-        carta_existente = self.repositorio.get_carta_by_identidad(db, carta=carta_data)
-        if carta_existente:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="La carta con la misma combinación de set, número, edición, idioma y acabado ya existe.",
-            )
-
-        # Persistir
-        ruta_imagen = self._guardar_imagen(imagen)
-        nuevo = self.repositorio.create_carta(db=db, carta=carta_data, image_path=ruta_imagen)
-        return nuevo
+        

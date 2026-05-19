@@ -1,17 +1,14 @@
 
+import { NavLink } from 'react-router-dom'
 import useAuth from '../../hooks/auth/useAuth'
 
 const navigationItems = [
-    { id: 'catalog', label: 'Catálogo de cartas' },
-    { id: 'cards', label: 'Agregar carta' },
+    { to: '/admin', label: 'Catálogo de cartas' },
+    { to: '/admin/cards', label: 'Agregar carta' },
 ]
 
-export default function Navbar({ activeSection = 'dashboard', onNavigate = () => { } }) {
+export default function Navbar() {
     const { logout } = useAuth()
-
-    const handleNavigate = (sectionId) => {
-        onNavigate(sectionId)
-    }
 
     const handleLogout = () => {
         logout()
@@ -28,18 +25,17 @@ export default function Navbar({ activeSection = 'dashboard', onNavigate = () =>
                         </div>
                         <div className="flex flex-1 flex-wrap gap-2">
                             {navigationItems.map((item) => (
-                                <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() => handleNavigate(item.id)}
-                                        className={
-                                            activeSection === item.id
-                                                ? 'rounded-md bg-gray-950/50 px-3 py-2 text-sm font-medium text-white border-b border-white/10'
-                                                : 'rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white cursor-pointer border border-white/10 shadow-md/20'
-                                        }
+                                <NavLink
+                                    key={item.to}
+                                    to={item.to}
+                                    className={({ isActive }) =>
+                                        isActive
+                                            ? 'rounded-md bg-gray-950/50 px-3 py-2 text-sm font-medium text-white border-b border-white/10'
+                                            : 'rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white cursor-pointer border border-white/10 shadow-md/20'
+                                    }
                                 >
                                     {item.label}
-                                </button>
+                                </NavLink>
                             ))}
                         </div>
                     </div>

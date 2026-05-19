@@ -22,11 +22,11 @@ export default function LoginForm({ on_switch = () => { } }) {
         // Se obtienen los datos del formulario
         try {
             const form = new FormData(event.target)
-            const email = form.get('email')
-            const password = form.get('password')
+            const correo = form.get('correo')
+            const contrasena = form.get('contrasena')
 
             // Llamada al servicio de inicio de sesión
-            // await login({ email, password })
+            await login({ correo, contrasena })
             // Mostrar mensaje de éxito
 
             // Se redirige a la página principal
@@ -48,13 +48,13 @@ export default function LoginForm({ on_switch = () => { } }) {
         >
             <form onSubmit={handle_submit} className="space-y-6">
                 <div>
-                    <label htmlFor="email" className="block text-sm/6 font-medium text-gray-100">
+                    <label htmlFor="correo" className="block text-sm/6 font-medium text-gray-100">
                         Direccion de correo electronico
                     </label>
                     <div className="mt-2">
                         <input
-                            id="email"
-                            name="email"
+                            id="correo"
+                            name="correo"
                             type="email"
                             required
                             autoComplete="email"
@@ -66,14 +66,14 @@ export default function LoginForm({ on_switch = () => { } }) {
 
                 <div>
                     <div className="flex items-center justify-between">
-                        <label htmlFor="password" className="block text-sm/6 font-medium text-gray-100">
+                        <label htmlFor="contrasena" className="block text-sm/6 font-medium text-gray-100">
                             Contraseña
                         </label>
                     </div>
                     <div className="mt-2">
                         <input
-                            id="password"
-                            name="password"
+                            id="contrasena"
+                            name="contrasena"
                             type="password"
                             required
                             autoComplete="current-password"

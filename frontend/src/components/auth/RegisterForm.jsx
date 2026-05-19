@@ -22,21 +22,20 @@ export default function RegisterForm({ on_switch = () => { } }) {
         // Se obtienen los datos del formulario
         try {
             const form = new FormData(event.target)
-            const email = form.get('email')
-            const username = form.get('username')
-            const password = form.get('password')
+            const correo = form.get('correo')
+            const nombre_usuario = form.get('nombre_usuario')
+            const contrasena = form.get('contrasena')
             const confirm_password = form.get('confirm_password')
 
             // Validacion basica de contraseñas
-            if (password !== confirm_password) {
+            if (contrasena !== confirm_password) {
                 set_error('Las contraseñas no coinciden')
                 set_loading(false)
                 return
             }
 
             // Llamada al servicio de registro
-            // await register({ email, username, password })
-            // Mostrar mensaje de éxito
+            await register({ nombre_usuario, correo, contrasena })
             
             // Se redirige al inicio de sesión
             on_switch('login')
@@ -59,13 +58,13 @@ export default function RegisterForm({ on_switch = () => { } }) {
         >
             <form onSubmit={handle_submit} className="space-y-6">
                 <div>
-                    <label htmlFor="email" className="block text-sm/6 font-medium text-gray-100">
+                    <label htmlFor="correo" className="block text-sm/6 font-medium text-gray-100">
                         Direccion de correo electronico
                     </label>
                     <div className="mt-2">
                         <input
-                            id="email"
-                            name="email"
+                            id="correo"
+                            name="correo"
                             type="email"
                             required
                             autoComplete="email"
@@ -76,13 +75,13 @@ export default function RegisterForm({ on_switch = () => { } }) {
                 </div>
 
                 <div>
-                    <label htmlFor="username" className="block text-sm/6 font-medium text-gray-100">
+                    <label htmlFor="nombre_usuario" className="block text-sm/6 font-medium text-gray-100">
                         Nombre de usuario
                     </label>
                     <div className="mt-2">
                         <input
-                            id="username"
-                            name="username"
+                            id="nombre_usuario"
+                            name="nombre_usuario"
                             type="text"
                             required
                             autoComplete="username"
@@ -95,14 +94,14 @@ export default function RegisterForm({ on_switch = () => { } }) {
 
                 <div>
                     <div className="flex items-center justify-between">
-                        <label htmlFor="password" className="block text-sm/6 font-medium text-gray-100">
+                        <label htmlFor="contrasena" className="block text-sm/6 font-medium text-gray-100">
                             Contraseña
                         </label>
                     </div>
                     <div className="mt-2">
                         <input
-                            id="password"
-                            name="password"
+                            id="contrasena"
+                            name="contrasena"
                             type="password"
                             required
                             autoComplete="new-password"

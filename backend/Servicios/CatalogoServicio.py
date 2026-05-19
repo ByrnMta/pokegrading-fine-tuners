@@ -18,8 +18,8 @@ from Esquemas.CartasEsquema import CartaCreate
 # Límites y formatos
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "heic"}
-MIN_WIDTH = 600
-MIN_HEIGHT = 800
+MIN_WIDTH = 200
+MIN_HEIGHT = 200
 
 
 

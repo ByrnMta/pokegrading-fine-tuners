@@ -113,31 +113,31 @@ export default function AddCardForm({ onSuccess = () => { } }) {
                 <div className="space-y-3">
                     <label className="flex flex-col">
                         <span className="text-sm">Set *</span>
-                        <input name="set_name" value={form.set_name} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
+                        <input name="set_name" value={form.set_name} onChange={handleChange} className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
                         {errors.set_name && <small className="text-rose-400">{errors.set_name}</small>}
                     </label>
 
                     <label className="flex flex-col">
                         <span className="text-sm">Número *</span>
-                        <input name="numero" value={form.numero} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
-                        {errors.numero && <small className="text-rose-400">{errors.numero}</small>}
+                            <input name="numero" value={form.numero} onChange={handleChange} className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
+                            {errors.numero && <small className="text-rose-400">{errors.numero}</small>}
                     </label>
 
                     <label className="flex flex-col">
                         <span className="text-sm">Edición *</span>
-                        <input name="edicion" value={form.edicion} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
+                        <input name="edicion" value={form.edicion} onChange={handleChange} className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
                         {errors.edicion && <small className="text-rose-400">{errors.edicion}</small>}
                     </label>
 
                     <label className="flex flex-col">
                         <span className="text-sm">Idioma *</span>
-                        <input name="idioma" value={form.idioma} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
+                        <input name="idioma" value={form.idioma} onChange={handleChange} className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
                         {errors.idioma && <small className="text-rose-400">{errors.idioma}</small>}
                     </label>
 
                     <label className="flex flex-col">
                         <span className="text-sm">Acabado *</span>
-                        <input name="acabado" value={form.acabado} onChange={handleChange} className="mt-1 w-full rounded-md bg-gray-700 px-3 py-2 text-white" />
+                        <input name="acabado" value={form.acabado} onChange={handleChange} className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
                         {errors.acabado && <small className="text-rose-400">{errors.acabado}</small>}
                     </label>
                 </div>
@@ -145,7 +145,7 @@ export default function AddCardForm({ onSuccess = () => { } }) {
                 <div>
                     <label className="flex flex-col">
                         <span className="text-sm">Imagen de referencia (JPEG, PNG, HEIC) *</span>
-                        <input type="file" accept=".jpg,.jpeg,.png,.heic,.heif,image/*" onChange={handleFile} className="mt-2 block w-full cursor-pointer rounded-md border border-white/10 bg-gray-700 px-4 py-3 text-sm text-white file:mr-4 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-1 file:text-white hover:bg-gray-600" />
+                        <input type="file" accept=".jpg,.jpeg,.png,.heic,.heif,image/*" onChange={handleFile} className="mt-2 block w-full cursor-pointer rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-4 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-1 file:text-white hover:bg-white/3" />
                         {errors.imagen && <small className="text-rose-400">{errors.imagen}</small>}
                     </label>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -167,7 +167,9 @@ export default function AddCardForm({ onSuccess = () => { } }) {
             {errors.submit && <div className="text-rose-400">{errors.submit}</div>}
 
             <div className="flex items-center gap-2">
-                <button disabled={submitting} className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">{submitting ? 'Guardando...' : 'Crear carta'}</button>
+                <button disabled={submitting} className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+                    {submitting ? 'Guardando...' : 'Crear carta'}
+                </button>
             </div>
 
         </form>

@@ -1,5 +1,5 @@
 
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/auth/useAuth'
 
 const navigationItems = [
@@ -9,9 +9,11 @@ const navigationItems = [
 
 export default function Navbar() {
     const { logout } = useAuth()
+    const navigate = useNavigate()
 
     const handleLogout = () => {
         logout()
+        navigate('/login')
     }
 
     return (

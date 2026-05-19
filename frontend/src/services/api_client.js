@@ -77,8 +77,8 @@ export async function getJson(path, headers = {}) {
  * @param {string} path - Ruta de la API
  * @param {Object} options - Opciones para la solicitud (POST, {} y body)
  */
-export async function postJson(path, body, headers = {}) {
-    return request(path, { method: 'POST', headers, body })
+export async function postJson(path, body, headers = {}, isFormData = false) {
+    return request(path, { method: 'POST', headers, body, isFormData })
 }
 
 /**

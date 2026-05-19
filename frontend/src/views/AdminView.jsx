@@ -13,9 +13,8 @@ export default function AdminView() {
             : 'rounded-2xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20'
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white">
+        <div>
             <Navbar />
-
             <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <section className={sectionClassName}>
                     <h1 className="mt-2 text-2xl font-semibold text-white underline">{title}</h1>

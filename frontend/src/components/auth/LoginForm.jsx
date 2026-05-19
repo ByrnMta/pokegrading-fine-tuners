@@ -1,6 +1,7 @@
 import AuthFormContainer from './AuthFormContainer'
 import useAuth from '../../hooks/auth/useAuth'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 /** * Formulario de inicio de sesión.
  *
@@ -12,6 +13,7 @@ export default function LoginForm({ on_switch = () => { } }) {
     const { login } = useAuth()
     const [loading, set_loading] = useState(false)
     const [error, set_error] = useState(null)
+    const navigate = useNavigate()
 
     // Función para manejar el envío del formulario de inicio de sesión
     const handle_submit = async (event) => {
@@ -87,9 +89,15 @@ export default function LoginForm({ on_switch = () => { } }) {
                     <button type="submit" className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
                         {loading ? 'Ingresando...' : 'Iniciar sesion'}
                     </button>
+
                 </div>
                 {error && <p className="text-sm text-red-400">{error}</p>}
             </form>
+
+            <button type="button" onClick={() => navigate('/admin')} className="flex w-full justify-center mt-2 rounded-md bg-gray-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+                Ingresar como administrador (para pruebas)
+            </button>
+            
         </AuthFormContainer>
     )
 }

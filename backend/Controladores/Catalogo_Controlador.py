@@ -4,9 +4,9 @@ from Servicios.CatalogoServicio import CatalogoServicio
 from Base_de_Datos.db_session import get_db
 from Esquemas.CartasEsquema import Carta as CartaEsquema, CartaCreate
 
-router = APIRouter(prefix="/catalog", tags=["catalog"])
+router = APIRouter(prefix="/catalogo", tags=["catalogo"])
 
-@router.post("/cards", response_model=CartaEsquema, status_code=status.HTTP_201_CREATED)
+@router.post("/carta", response_model=CartaEsquema, status_code=status.HTTP_201_CREATED)
 def agregar_carta_al_catalogo(
         numero: str = Form(...),
         set_name: str = Form(...),

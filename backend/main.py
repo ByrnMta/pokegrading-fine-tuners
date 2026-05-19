@@ -5,7 +5,7 @@ from Modelos.Usuario import Usuario
 
 # Importación de routers
 from Controladores.Usuario_Controlador import router as usuario_router
-
+from Routers import CatalogoRouter
 
 
 # Dependencia para obtener la sesión de base de datos
@@ -21,3 +21,4 @@ def read_root():
 
 # --- REGISTRO DE ROUTERS ---
 app.include_router(usuario_router)
+app.include_router(CatalogoRouter.router)

@@ -16,7 +16,16 @@ def agregar_carta_al_catalogo(
         imagen: UploadFile = File(...),
         db: Session = Depends(get_db)
     ):
-    # Endpoint para agregar una nueva carta al catálogo.
+    """Endpoint: agrega una nueva carta al catálogo.
+
+    Parámetros recibidos por `Form`/`File`:
+    - `numero`, `set_name`, `edicion`, `idioma`, `acabado`: campos de la carta.
+    - `imagen`: archivo cargado con la imagen de la carta.
+    - `db`: sesión de base de datos inyectada por dependencia.
+
+    Valida y persiste la carta delegando en `CatalogoServicio.agregar_carta`.
+    Devuelve el registro creado usando el esquema de respuesta `Carta`.
+    """
     carta_data = CartaCreate(
         numero=numero,
         set_name=set_name,

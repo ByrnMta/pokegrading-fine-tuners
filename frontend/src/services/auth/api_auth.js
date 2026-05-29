@@ -1,4 +1,4 @@
-import { postJson, getJson } from '../api_client'
+import { postJson, getJson } from '../solicitudes/api_client'
 
 /**
  * Inicia sesión con las credenciales proporcionadas.

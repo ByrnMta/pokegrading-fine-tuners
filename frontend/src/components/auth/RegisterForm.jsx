@@ -1,6 +1,7 @@
 import AuthFormContainer from './AuthFormContainer'
 import useAuth from '../../hooks/auth/useAuth'
 import { useState } from 'react'
+import { validateRegisterFields } from '../../utils/validators/auth'
 
 /**
  * Formulario de registro de cuenta.
@@ -12,11 +13,11 @@ import { useState } from 'react'
 export default function RegisterForm({ on_switch = () => { } }) {
     const { register } = useAuth()
     const [loading, set_loading] = useState(false)
-    const [error, set_error] = useState(null)
+    const [errors, set_errors] = useState({})
 
     const handle_submit = async (event) => {
         event.preventDefault()
-        set_error(null)
+        set_errors({})
         set_loading(true)
 
         // Se obtienen los datos del formulario
@@ -27,22 +28,26 @@ export default function RegisterForm({ on_switch = () => { } }) {
             const contrasena = form.get('contrasena')
             const confirm_password = form.get('confirm_password')
 
-            // Validacion basica de contraseñas
-            if (contrasena !== confirm_password) {
-                set_error('Las contraseñas no coinciden')
+            const fieldErrors = validateRegisterFields({ correo, nombre_usuario, contrasena, confirm_password })
+            if (Object.keys(fieldErrors).length) {
+                set_errors(fieldErrors)
                 set_loading(false)
                 return
             }
 
             // Llamada al servicio de registro
-            await register({ nombre_usuario, correo, contrasena })
+            const res = await register({ nombre_usuario, correo, contrasena })
+            if (!res.ok) {
+                set_errors(res.errors || { form: 'Error al registrar la cuenta' })
+                return
+            }
             
             // Se redirige al inicio de sesión
             on_switch('login')
 
         // Manejo de errores con preferencia a mensajes detallados del backend
         } catch (err) {
-            set_error(err?.data?.message || err?.data?.detail || err?.message || 'Error al registrar la cuenta')
+            set_errors({ form: 'Ocurrio un error inesperado' })
         } finally {
             set_loading(false)
         }
@@ -71,12 +76,13 @@ export default function RegisterForm({ on_switch = () => { } }) {
                             placeholder="tu@email.com"
                             className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                         />
+                        {errors.correo && <small className="text-red-400">{errors.correo}</small>}
                     </div>
                 </div>
 
                 <div>
                     <label htmlFor="nombre_usuario" className="block text-sm/6 font-medium text-gray-100">
-                        Nombre de usuario
+                        Alias
                     </label>
                     <div className="mt-2">
                         <input
@@ -88,6 +94,7 @@ export default function RegisterForm({ on_switch = () => { } }) {
                             placeholder="Tu nombre de usuario"
                             className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                         />
+                        {errors.nombre_usuario && <small className="text-red-400">{errors.nombre_usuario}</small>}
                     </div>
                 </div>
 
@@ -108,6 +115,7 @@ export default function RegisterForm({ on_switch = () => { } }) {
                             placeholder="••••••••"
                             className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                         />
+                        {errors.contrasena && <small className="text-red-400">{errors.contrasena}</small>}
                     </div>
                 </div>
 
@@ -127,6 +135,7 @@ export default function RegisterForm({ on_switch = () => { } }) {
                             placeholder="••••••••"
                             className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                         />
+                        {errors.confirm_password && <small className="text-red-400">{errors.confirm_password}</small>}
                     </div>
                 </div>
 
@@ -135,7 +144,7 @@ export default function RegisterForm({ on_switch = () => { } }) {
                         {loading ? 'Registrando...' : 'Registrar cuenta'}
                     </button>
                 </div>
-                {error && <p className="text-sm text-red-400">{error}</p>}
+                {errors.form && <p className="text-sm text-red-400">{errors.form}</p>}
             </form>
         </AuthFormContainer>
     )

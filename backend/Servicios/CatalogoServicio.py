@@ -46,11 +46,11 @@ class CatalogoServicio:
         # Validaciones de imagen
         CatalogoServicio._validar_imagen(imagen)
 
-        repositorio = CartasRepositorio()
+        repositorio = CartasRepositorio() # Documnentar de forma apropiada (diagrama)
         carta_existente = repositorio.get_carta_by_identidad(db, carta=carta_data)
         if carta_existente:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
+                status_code=status.HTTP_409_CONFLICT, # validar este codigo en el front
                 detail="La carta con la misma combinación de set, número, edición, idioma y acabado ya existe.",
             )
 
@@ -59,8 +59,8 @@ class CatalogoServicio:
         nuevo = repositorio.create_carta(db=db, carta=carta_data, image_path=ruta_imagen)
         return nuevo
 
-
     #============================= Validaciones =============================
+    # Validaciones centralizadas para reutilizar
 
     @staticmethod
     def _validar_imagen(imagen: UploadFile) -> None:
@@ -114,7 +114,8 @@ class CatalogoServicio:
 
 
     #============================= Utilidades =============================
-    
+    # Capa de persistencia de los repositorios y donde guardar las imagenes
+
     @staticmethod
     def _guardar_imagen(imagen: UploadFile) -> str:
         """Guarda imagen en disco y devuelve la ruta relativa.

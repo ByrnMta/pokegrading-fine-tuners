@@ -1,39 +1,16 @@
 import { useState } from 'react'
-import { postCard } from '../../services/cards/api_cards'
-
-const ALLOWED_EXT = ['jpeg', 'png', 'heic']
-
-// Función auxiliar para obtener la extensión del archivo
-function getExt(name) {
-    return String(name).split('.').pop().toLowerCase()
-}
+import useCards from '../../hooks/cards/useCards'
+import { validateCardFields, validateCardFile } from '../../utils/validators/cards'
 
 export default function AddCardForm({ onSuccess = () => { } }) {
+    const { addCard } = useCards()
     const [form, setForm] = useState({ set_name: '', numero: '', edicion: '', idioma: '', acabado: '' })
     const [file, setFile] = useState(null)
     const [errors, setErrors] = useState({})
     const [submitting, setSubmitting] = useState(false)
 
     // Validación de campos antes de enviar al servidor, muestra advertencia para cada campo
-    const validateFields = () => {
-        const err = {}
-
-        if (!form.set_name) err.set_name = 'Requerido'
-        if (!form.numero) err.numero = 'Requerido'
-        if (!form.edicion) err.edicion = 'Requerido'
-        if (!form.idioma) err.idioma = 'Requerido'
-        if (!form.acabado) err.acabado = 'Requerido'
-        if (!file) err.imagen = 'Debe adjuntar una imagen de referencia'
-
-        if (file) {
-            const ext = getExt(file.name)
-            if (!ALLOWED_EXT.includes(ext)) {
-                err.imagen = 'Formato no soportado. Use jpeg, png o heic.'
-            }
-        }
-
-        return err
-    }
+    const validateFields = () => validateCardFields(form, file)
 
     // Maneja la selección del archivo, valida formato, tamaño y resolución, y actualiza el estado de errores o del archivo
     const handleFile = async (ev) => {
@@ -42,10 +19,9 @@ export default function AddCardForm({ onSuccess = () => { } }) {
         setErrors((e) => ({ ...e, imagen: undefined }))
         if (!f) return
         
-        // Valida la extension del archivo (formato)
-        const ext = getExt(f.name)
-        if (!ALLOWED_EXT.includes(ext)) {
-            setErrors((e) => ({ ...e, imagen: 'Formato no soportado. Use jpeg, png o heic.' }))
+        const validation = validateCardFile(f)
+        if (!validation.ok) {
+            setErrors((e) => ({ ...e, imagen: validation.error }))
             return
         }
         setFile(f)
@@ -75,7 +51,6 @@ export default function AddCardForm({ onSuccess = () => { } }) {
 
         // Intenta enviar los datos al backend, maneja la respuesta exitosa o muestra errores de envío
         try {
-            
             // Obtiene los datos del formulario y el archivo para la solicitud
             const fd = new FormData()
             fd.append('numero', form.numero)
@@ -86,14 +61,16 @@ export default function AddCardForm({ onSuccess = () => { } }) {
             fd.append('imagen', file)
 
             // Envía la solicitud al backend para crear la carta, maneja la respuesta y errores
-            const res = await postCard(fd)
-            onSuccess(res)
-            setForm({ set_name: '', numer: '', edicion: '', idioma: '', acabado: '' })
+            const res = await addCard(fd)
+            if (!res.ok) {
+                setErrors(res.errors || { submit: 'Error de validacion' })
+                return
+            }
+            onSuccess(res.data)
+            setForm({ set_name: '', numero: '', edicion: '', idioma: '', acabado: '' })
             setFile(null)
         } catch (err) {
-            // Genera mensaje de error con preferencia a respuesta del backend, si no muestra mensaje genérico
-            const message = err?.data?.message || err?.message || 'Error al crear la carta'
-            setErrors({ submit: message })
+            setErrors({ submit: 'Ocurrio un error inesperado' })
         } finally {
             setSubmitting(false)
         }

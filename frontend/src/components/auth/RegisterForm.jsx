@@ -1,7 +1,7 @@
 import AuthFormContainer from './AuthFormContainer'
 import useAuth from '../../hooks/auth/useAuth'
 import { useState } from 'react'
-import { validateRegisterFields } from '../../utils/validators/auth'
+import { REGISTER_COUNTRIES, REGISTER_LANGUAGES, validateRegisterFields } from '../../utils/validators/auth'
 
 /**
  * Formulario de registro de cuenta.
@@ -27,8 +27,19 @@ export default function RegisterForm({ on_switch = () => { } }) {
             const nombre_usuario = form.get('nombre_usuario')
             const contrasena = form.get('contrasena')
             const confirm_password = form.get('confirm_password')
+            const pais = form.get('pais')
+            const idioma = form.get('idioma')
+            const disclosure = form.get('disclosure') === 'on' // Puede ser string o int, no boolean
 
-            const fieldErrors = validateRegisterFields({ correo, nombre_usuario, contrasena, confirm_password })
+            const fieldErrors = validateRegisterFields({
+                correo,
+                nombre_usuario,
+                contrasena,
+                confirm_password,
+                pais,
+                idioma,
+                disclosure
+            })
             if (Object.keys(fieldErrors).length) {
                 set_errors(fieldErrors)
                 set_loading(false)
@@ -36,7 +47,7 @@ export default function RegisterForm({ on_switch = () => { } }) {
             }
 
             // Llamada al servicio de registro
-            const res = await register({ nombre_usuario, correo, contrasena })
+            const res = await register({ nombre_usuario, correo, contrasena, pais, idioma, disclosure })
             if (!res.ok) {
                 set_errors(res.errors || { form: 'Error al registrar la cuenta' })
                 return
@@ -98,6 +109,48 @@ export default function RegisterForm({ on_switch = () => { } }) {
                     </div>
                 </div>
 
+                <div>
+                    <label htmlFor="pais" className="block text-sm/6 font-medium text-gray-100">
+                        Pais de residencia
+                    </label>
+                    <div className="mt-2">
+                        <select
+                            id="pais"
+                            name="pais"
+                            required
+                            defaultValue=""
+                            className="cursor-pointer block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                        >
+                            <option value="" disabled>Selecciona un pais</option>
+                            {REGISTER_COUNTRIES.map((country) => (
+                                <option key={country} value={country}>{country}</option>
+                            ))}
+                        </select>
+                        {errors.pais && <small className="text-red-400">{errors.pais}</small>}
+                    </div>
+                </div>
+
+                <div>
+                    <label htmlFor="idioma" className="block text-sm/6 font-medium text-gray-100">
+                        Idioma preferido
+                    </label>
+                    <div className="mt-2">
+                        <select
+                            id="idioma"
+                            name="idioma"
+                            required
+                            defaultValue="es"
+                            className="cursor-pointer block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                        >
+                            {REGISTER_LANGUAGES.map((language) => (
+                                <option key={language} value={language}>
+                                    {language === 'es' ? 'Espanol' : 'Ingles'}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.idioma && <small className="text-red-400">{errors.idioma}</small>}
+                    </div>
+                </div>
 
                 <div>
                     <div className="flex items-center justify-between">
@@ -138,6 +191,19 @@ export default function RegisterForm({ on_switch = () => { } }) {
                         {errors.confirm_password && <small className="text-red-400">{errors.confirm_password}</small>}
                     </div>
                 </div>
+
+                <div className="flex items-start gap-3">
+                    <input
+                        id="disclosure"
+                        name="disclosure"
+                        type="checkbox"
+                        className="cursor-pointer mt-1 size-4 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="disclosure" className="text-sm text-gray-100/75">
+                        Acepto que PokéGrading es informativo y no sustituye PSA, BGS ni CGC.
+                    </label>
+                </div>
+                {errors.disclosure && <small className="text-red-400">{errors.disclosure}</small>}
 
                 <div>
                     <button type="submit" className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">

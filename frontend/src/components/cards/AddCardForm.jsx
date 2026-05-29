@@ -5,26 +5,39 @@ import { validateCardFields, validateCardFile } from '../../utils/validators/car
 export default function AddCardForm({ onSuccess = () => { } }) {
     const { addCard } = useCards()
     const [form, setForm] = useState({ set_name: '', numero: '', edicion: '', idioma: '', acabado: '' })
-    const [file, setFile] = useState(null)
+    const [frontFile, setFrontFile] = useState(null)
+    const [backFile, setBackFile] = useState(null)
     const [errors, setErrors] = useState({})
     const [submitting, setSubmitting] = useState(false)
 
     // Validación de campos antes de enviar al servidor, muestra advertencia para cada campo
-    const validateFields = () => validateCardFields(form, file)
+    const validateFields = () => validateCardFields(form, frontFile, backFile)
 
     // Maneja la selección del archivo, valida formato, tamaño y resolución, y actualiza el estado de errores o del archivo
-    const handleFile = async (ev) => {
+    const handleFile = async (ev, side) => {
         const f = ev.target.files?.[0] || null
-        setFile(null)
-        setErrors((e) => ({ ...e, imagen: undefined }))
+        if (side === 'front') {
+            setFrontFile(null)
+            setErrors((e) => ({ ...e, imagen: undefined }))
+        } else {
+            setBackFile(null)
+            setErrors((e) => ({ ...e, imagen_reverso: undefined }))
+        }
         if (!f) return
         
         const validation = validateCardFile(f)
         if (!validation.ok) {
-            setErrors((e) => ({ ...e, imagen: validation.error }))
+            setErrors((e) => ({
+                ...e,
+                [side === 'front' ? 'imagen' : 'imagen_reverso']: validation.error
+            }))
             return
         }
-        setFile(f)
+        if (side === 'front') {
+            setFrontFile(f)
+        } else {
+            setBackFile(f)
+        }
     }
 
     // Actualiza el estado de los inputs limpiando errores en cada campo
@@ -58,7 +71,8 @@ export default function AddCardForm({ onSuccess = () => { } }) {
             fd.append('edicion', form.edicion)
             fd.append('idioma', form.idioma)
             fd.append('acabado', form.acabado)
-            fd.append('imagen', file)
+            fd.append('imagen', frontFile)
+            fd.append('imagen_reverso', backFile)
 
             // Envía la solicitud al backend para crear la carta, maneja la respuesta y errores
             const res = await addCard(fd)
@@ -68,7 +82,8 @@ export default function AddCardForm({ onSuccess = () => { } }) {
             }
             onSuccess(res.data)
             setForm({ set_name: '', numero: '', edicion: '', idioma: '', acabado: '' })
-            setFile(null)
+            setFrontFile(null)
+            setBackFile(null)
         } catch (err) {
             setErrors({ submit: 'Ocurrio un error inesperado' })
         } finally {
@@ -77,9 +92,10 @@ export default function AddCardForm({ onSuccess = () => { } }) {
     }
 
     // Función para abrir la imagen seleccionada en una nueva pestaña del navegador
-    const handleOpenInNewWindow = () => {
-        if (!file) return
-        const url = URL.createObjectURL(file)
+    const handleOpenInNewWindow = (side) => {
+        const targetFile = side === 'front' ? frontFile : backFile
+        if (!targetFile) return
+        const url = URL.createObjectURL(targetFile)
         window.open(url, '_blank', 'noopener,noreferrer')
         setTimeout(() => URL.revokeObjectURL(url), 0)
     }
@@ -121,24 +137,46 @@ export default function AddCardForm({ onSuccess = () => { } }) {
 
                 <div>
                     <label className="flex flex-col">
-                        <span className="text-sm">Imagen de referencia (JPEG, PNG, HEIC) *</span>
-                        <input type="file" accept=".jpg,.jpeg,.png,.heic,.heif,image/*" onChange={handleFile} className="mt-2 block w-full cursor-pointer rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-4 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-1 file:text-white hover:bg-white/3" />
+                        <span className="text-sm">Imagen de referencia (frente) (JPEG, PNG, HEIC) *</span>
+                        <input type="file" accept=".jpg,.jpeg,.png,.heic,.heif,image/*" onChange={(ev) => handleFile(ev, 'front')} className="mt-2 block w-full cursor-pointer rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-4 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-1 file:text-white hover:bg-white/3" />
                         {errors.imagen && <small className="text-rose-400">{errors.imagen}</small>}
                     </label>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                         <button
                             type="button"
-                            disabled={!file}
-                            onClick={handleOpenInNewWindow}
+                            disabled={!frontFile}
+                            onClick={() => handleOpenInNewWindow('front')}
                             className="rounded-md border border-white/10 px-2 py-1 text-xs text-gray-200 disabled:opacity-40"
                         >
                             Abrir en el navegador
                         </button>
                         <span className="text-xs text-gray-400">
-                            {file ? 'Imagen lista para revisar en otra pestaña.' : 'No se ha seleccionado ninguna imagen.'}
+                            {frontFile ? 'Imagen lista para revisar en otra pestaña.' : 'No se ha seleccionado ninguna imagen.'}
                         </span>
                     </div>
                 </div>
+
+                <div>
+                    <label className="flex flex-col">
+                        <span className="text-sm">Imagen de referencia (reverso) (JPEG, PNG, HEIC) *</span>
+                        <input type="file" accept=".jpeg,.png,.heic,image/*" onChange={(ev) => handleFile(ev, 'back')} className="mt-2 block w-full cursor-pointer rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-4 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-1 file:text-white hover:bg-white/3" />
+                        {errors.imagen_reverso && <small className="text-rose-400">{errors.imagen_reverso}</small>}
+                    </label>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <button
+                            type="button"
+                            disabled={!backFile}
+                            onClick={() => handleOpenInNewWindow('back')}
+                            className="rounded-md border border-white/10 px-2 py-1 text-xs text-gray-200 disabled:opacity-40"
+                        >
+                            Abrir en el navegador
+                        </button>
+                        <span className="text-xs text-gray-400">
+                            {backFile ? 'Imagen lista para revisar en otra pestaña.' : 'No se ha seleccionado ninguna imagen.'}
+                        </span>
+                    </div>
+                </div>
+
             </div>
 
             {errors.submit && <div className="text-rose-400">{errors.submit}</div>}

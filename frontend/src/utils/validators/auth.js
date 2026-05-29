@@ -1,5 +1,6 @@
-const PASSWORD_MISMATCH_MESSAGE = 'Las contraseñas no coinciden'
 const REQUIRED_MESSAGE = 'Requerido'
+
+const PASSWORD_MISMATCH_MESSAGE = 'Las contraseñas no coinciden'
 const INVALID_EMAIL_MESSAGE = 'Formato de correo invalido'
 const BLOCKED_DOMAIN_MESSAGE = 'Dominio de correo no permitido'
 const PASSWORD_RULES_MESSAGE = 'La contrasena debe tener al menos 8 caracteres, 1 mayuscula y 1 digito'
@@ -9,8 +10,10 @@ const INVALID_LANGUAGE_MESSAGE = 'Idioma no valido'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MIN_PASSWORD_LENGTH = 8
+
 export const REGISTER_COUNTRIES = ['CR', 'PA', 'MX', 'CO', 'CL', 'AR']
 export const REGISTER_LANGUAGES = ['es', 'en']
+
 const BLOCKED_EMAIL_DOMAINS = ['mailinator.com', 'tempmail.com', '10minutemail.com']
 
 // Validación de confirmación de contraseña

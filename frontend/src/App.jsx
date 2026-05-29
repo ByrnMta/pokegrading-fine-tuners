@@ -7,7 +7,7 @@ function App() {
     <Routes>
       <Route path="/" element={<AuthView />} />
       <Route path="/admin" element={<AdminView />} />
-      <Route path="/admin/cards" element={<AdminView />} />
+      <Route path="/admin/addcards" element={<AdminView />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

@@ -24,7 +24,7 @@ export function validateCardFile(file) {
 }
 
 // Validación de campos del formulario de carta
-export function validateCardFields(form, file) {
+export function validateCardFields(form, frontFile, backFile) {
     const err = {}
 
     if (!form?.set_name) 
@@ -37,12 +37,21 @@ export function validateCardFields(form, file) {
         err.idioma = REQUIRED_MESSAGE
     if (!form?.acabado) 
         err.acabado = REQUIRED_MESSAGE
-    if (!file) 
+    if (!frontFile) 
         err.imagen = REQUIRED_MESSAGE
+    if (!backFile)
+        err.imagen_reverso = REQUIRED_MESSAGE
 
-    const fileValidation = validateCardFile(file)
-    if (!fileValidation.ok) {
-        err.imagen = fileValidation.error
+    // Validación del archivo de imagen del frente
+    const frontValidation = validateCardFile(frontFile)
+    if (!frontValidation.ok) {
+        err.imagen = frontValidation.error
+    }
+
+    // Validación del archivo de imagen del reverso
+    const backValidation = validateCardFile(backFile)
+    if (!backValidation.ok) {
+        err.imagen_reverso = backValidation.error
     }
 
     return err

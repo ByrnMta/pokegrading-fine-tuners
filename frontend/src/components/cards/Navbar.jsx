@@ -3,8 +3,8 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/auth/useAuth'
 
 const navigationItems = [
-    { to: '/admin', label: 'Catálogo de cartas' },
-    { to: '/admin/cards', label: 'Agregar carta' },
+    { to: '/admin', label: 'Catálogo de cartas', end: true },
+    { to: '/admin/addcards', label: 'Agregar carta', end: false },
 ]
 
 export default function Navbar() {
@@ -30,6 +30,7 @@ export default function Navbar() {
                                 <NavLink
                                     key={item.to}
                                     to={item.to}
+                                    end={item.end}
                                     className={({ isActive }) =>
                                         isActive
                                             ? 'rounded-md bg-gray-950/50 px-3 py-2 text-sm font-medium text-white border-b border-white/10'

@@ -19,7 +19,7 @@ class CartaCreate(CartaBase):
     Hereda de `CartaBase` y se utiliza en endpoints que reciben datos
     para crear una nueva carta en el catálogo.
     """
-
+    
     pass
 
 class Carta(CartaBase):

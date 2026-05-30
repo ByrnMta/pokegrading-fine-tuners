@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from sqlalchemy.orm import Session
 from Base_de_Datos.db_session import get_db
-from Servicios.Usuario_Servicio import UsuarioServicio
+from Servicios.logica.Usuario_Servicio import UsuarioServicio
 import os
 import socket
 

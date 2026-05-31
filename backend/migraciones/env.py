@@ -20,6 +20,8 @@ from Base_de_Datos.db import Base
 from Modelos.Usuario import Usuario
 from Modelos.Rol import Rol
 from Modelos.Cartas import Carta
+from Modelos.Pais import Pais
+from Modelos.Idioma import Idioma
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

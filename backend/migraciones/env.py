@@ -22,6 +22,7 @@ from Modelos.Rol import Rol
 from Modelos.Cartas import Carta
 from Modelos.Pais import Pais
 from Modelos.Idioma import Idioma
+from Modelos.DominioCorreoInvalido import DominioCorreoInvalido
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

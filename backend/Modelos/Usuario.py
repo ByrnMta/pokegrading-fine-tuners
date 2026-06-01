@@ -14,5 +14,5 @@ class Usuario(Base):
     nombre_usuario = Column(String(80), nullable=False)
     correo = Column(String(100), unique=True, index=True, nullable=False)
     contrasena = Column(String(100), nullable=False)
-    ultimo_acceso = Column(DateTime(timezone=True), server_default=func.now())
+    ultimo_acceso = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
     

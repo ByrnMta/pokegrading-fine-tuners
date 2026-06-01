@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from sqlalchemy.orm import Session
 from Base_de_Datos.db_session import get_db
 from Servicios.logica.Usuario_Servicio import UsuarioServicio
-from modelos.Usuario import UsuarioCreate
+from Esquemas.UsuarioEsquema import UsuarioCreate
 import os
 import socket
 
@@ -33,9 +33,7 @@ def registrar_usuario(
     # Se llama al servicio de registro de usuario nuevo
     resultado = UsuarioServicio.registrar_usuario_servicio(
         db=db, 
-        nombre_usuario=nombre_usuario, 
-        correo=correo, 
-        contrasena=contrasena
+        nuevo_usuario=nuevo_usuario,
     )
     if 'errores' in resultado:
         # Si el servicio devuelve errores, se lanza una excepción HTTP con el detalle de los errores

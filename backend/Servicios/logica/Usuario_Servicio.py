@@ -1,7 +1,9 @@
 from passlib.context import CryptContext
 from Modelos.Usuario import Usuario
 from sqlalchemy.orm import Session
-
+from Esquemas.UsuarioEsquema import UsuarioCreate
+from AccesoDatos.UsuarioRepositorio import UsuarioRepositorio
+from Servicios.validaciones.UsuarioValidacion import UsuarioValidacion
 
 class UsuarioServicio:
 
@@ -12,34 +14,35 @@ class UsuarioServicio:
 
     # Registro de usuario
     @staticmethod
-    def registrar_usuario_servicio(db: Session, nombre_usuario: str, correo: str, contrasena: str):
+    def registrar_usuario_servicio(db: Session, nuevo_usuario: UsuarioCreate):
+        """Servicio de registro de usuario nuevo, que valida los datos recibidos."""
 
         errores = {}
         try:
             # Validar que el correo sea único
-            UsuarioServicio.validar_correo_unico(db, correo, errores)
+            UsuarioValidacion.unicidad_correo(db, nuevo_usuario.correo, errores)
 
-            #validación de unicidad de nombre de usuario
-            UsuarioServicio.validar_nombre_usuario_unico(db, nombre_usuario, errores)
+            # Validar formato del correo
+            UsuarioValidacion.formato_correo_valido(db, nuevo_usuario.correo, errores)
+
+            # Validar dominio del correo
+            UsuarioValidacion.validar_dominio_bloqueado(db, nuevo_usuario.correo, errores)
             
+            # Validar formato de la contraseña
+            UsuarioValidacion.validar_contrasena(db, nuevo_usuario.contrasena, errores)
+            
+            # Validar país de mercado
+            UsuarioValidacion.validar_pais_mercado(db, nuevo_usuario.pais, errores)
+            
+            # Validar idioma
+            UsuarioValidacion.validar_idioma(db, nuevo_usuario.idioma, errores)
+
             # si hay errores de validación, se retornan
             if errores:
                 return {"errores": errores}
             
-            # Se encripta la contraseña antes de guardarla
-            contrasena_hashed = UsuarioServicio.pwd_context.hash(contrasena)
-            rol_id = 2  # Asignar rol de submitter por defecto
-
-            # Se crea el usuario en la base de datos
-            nuevo_usuario = Usuario(
-                rol_id=rol_id,
-                nombre_usuario=nombre_usuario,
-                correo=correo,
-                contrasena=contrasena_hashed
-            )
-            db.add(nuevo_usuario) # se agrega el nuevo usuario a la sesión de la base de datos
-            db.commit() # se confirma la transacción
-            db.refresh(nuevo_usuario)
+            # Se registra el nuevo usuario
+            UsuarioRepositorio.registrar_usuario(db, nuevo_usuario)
 
             return {"mensaje": "Usuario registrado exitosamente"}
             
@@ -48,34 +51,4 @@ class UsuarioServicio:
             return {"errores": {"internal": f"Error interno: {str(e)}"}}
         finally:
             db.close()
-
-    #============================= Validaciones =============================
-
-    # validar unicidad de correo
-    @staticmethod
-    def validar_correo_unico(db: Session, correo: str, errores: dict):
-        # se valida que el correo no esté vacío
-        if not correo:
-            errores['correo'] = "El correo es obligatorio."
-            return None
-
-        # Validar que el correo no esté registrado
-        if  db.query(Usuario).filter(Usuario.correo == correo).first():
-            errores['correo'] = "El correo ya está registrado."
-            return None
-    
-    # validar unicidad de nombre de usuario
-    @staticmethod
-    def validar_nombre_usuario_unico(db: Session, nombre_usuario: str, errores: dict):
-        # se valida que el nombre de usuario no esté vacío
-        if not nombre_usuario:
-            errores['nombre_usuario'] = "El nombre de usuario es obligatorio."
-            return None
-
-        # Validar que el nombre de usuario no esté registrado
-        if db.query(Usuario).filter(Usuario.nombre_usuario == nombre_usuario).first():
-            errores['nombre_usuario'] = "El nombre de usuario ya está registrado, por favor intente con otro."
-            return None
-
-
     

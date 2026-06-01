@@ -60,7 +60,7 @@ export default function SubmitView() {
                         onSuccess={handleSuccess}
                         onCompare={handleCompare}
                         requiredFields={[]}
-                        showMetadataFields={false}
+                        showMetadataFields={false} // oculta campos de metadatos para simplificar el formulario
                         submitLabel="Enviar a revisión"
                     />
                 </section>

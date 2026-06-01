@@ -12,7 +12,7 @@ except Exception:
     HAS_PIL = False
 from sqlalchemy.orm import Session
 
-from Repositorios.CartasRepositorio import CartasRepositorio
+from AccesoDatos.CartasRepositorio import CartasRepositorio
 from Esquemas.CartasEsquema import CartaCreate
 
 # Límites y formatos

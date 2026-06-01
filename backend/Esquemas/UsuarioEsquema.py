@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 class UsuarioBase(BaseModel):
-    """Esquema base para la representación de un usuario en internamente."""
+    """Esquema base para la representación de un usuario internamente."""
 
     id: int
     rol_id: int

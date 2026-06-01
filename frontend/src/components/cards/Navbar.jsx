@@ -5,6 +5,7 @@ import useAuth from '../../hooks/auth/useAuth'
 const navigationItems = [
     { to: '/admin', label: 'Catálogo de cartas' },
     { to: '/admin/cards', label: 'Agregar carta' },
+    { to: '/submit', label: 'Submit' },
 ]
 
 export default function Navbar() {
@@ -35,6 +36,7 @@ export default function Navbar() {
                                             ? 'rounded-md bg-gray-950/50 px-3 py-2 text-sm font-medium text-white border-b border-white/10'
                                             : 'rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white cursor-pointer border border-white/10 shadow-md/20'
                                     }
+
                                 >
                                     {item.label}
                                 </NavLink>

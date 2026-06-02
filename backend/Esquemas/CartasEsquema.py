@@ -1,38 +1,57 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
+
+"""Esquemas Pydantic para lectura y escritura de cartas.
+
+Separan la forma en que el catálogo recibe datos de la forma en que los expone
+en la respuesta, manteniendo claro qué campos son obligatorios y cuáles son
+recomendados.
+"""
 
 class CartaBase(BaseModel):
+    """Campos de identidad que definen una carta de forma única."""
+
     numero: str
     set_name: str
     edicion: str
     idioma: str
     acabado: str
 
-    """Esquema base (Pydantic) con los campos comunes a una carta.
+class CartaDisplay(BaseModel):
+    """Campos opcionales usados para enriquecer la visualización de la carta."""
 
-    Se utiliza para validación de entrada y como base para esquemas derivados.
-    """
+    nombre: Optional[str] = None
+    rareza: Optional[str] = None
+    tipo: Optional[str] = None
+    hp: Optional[int] = None
+    ilustrador: Optional[str] = None
+    anio_impresion: Optional[int] = None
+
+    """Campos de display recomendados para una carta."""
+
 
 class CartaCreate(CartaBase):
-    """Esquema para la creación de una carta.
+    """Payload de creación para el alta de una carta en el catálogo."""
 
-    Hereda de `CartaBase` y se utiliza en endpoints que reciben datos
-    para crear una nueva carta en el catálogo.
-    """
-    
-    pass
+    autor: str
+    nombre: Optional[str] = None
+    rareza: Optional[str] = None
+    tipo: Optional[str] = None
+    hp: Optional[str] = None
+    ilustrador: Optional[str] = None
+    anio_impresion: Optional[str] = None
 
-class Carta(CartaBase):
+class Carta(CartaBase, CartaDisplay):
+    """Representación completa de una carta devuelta por la API."""
+
     id: int
+    card_id: str
+    autor: str
     estado: str
-    image_path: str
+    image_front_path: str
+    image_back_path: str
     created_at: datetime
 
     class Config:
         from_attributes = True
-    
-    """Esquema que representa una carta completa devuelta por la API.
-
-    Contiene los campos de `CartaBase` más metadata gestionada por el sistema
-    (`id`, `estado`, `image_path`, `created_at`).
-    """

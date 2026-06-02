@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.sql import func
 from Base_de_Datos.db import Base
 
 
@@ -9,6 +9,10 @@ class Usuario(Base):
 
     id = Column(Integer, primary_key=True)
     rol_id = Column(Integer, ForeignKey("rol.id"), nullable=False)
+    pais_id = Column(Integer, ForeignKey("pais.id"), nullable=False)
+    idioma_id = Column(Integer, ForeignKey("idioma.id"), nullable=False)
     nombre_usuario = Column(String(80), nullable=False)
     correo = Column(String(100), unique=True, index=True, nullable=False)
     contrasena = Column(String(100), nullable=False)
+    ultimo_acceso = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
+    

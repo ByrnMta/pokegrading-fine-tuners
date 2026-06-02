@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from AccesoDatos.CartasRepositorio import CartasRepositorio
 from AccesoDatos.AuditoriaRepositorio import AuditoriaRepositorio
 from Esquemas.CartasEsquema import CartaCreate
+from Servicios.utilidades.BuscadorImagenes import EmbeddingService
 
 """Lógica de negocio para el alta de cartas en el catálogo.
 
@@ -124,6 +125,27 @@ class CatalogoServicio:
 
         auditoria_repo = AuditoriaRepositorio()
         try:
+            # Compute and persist embeddings (KISS): read saved image files and persist .npy files
+            try:
+                emb_svc = EmbeddingService(embeddings_dir="embeddings")
+                with open(image_front_path, "rb") as f:
+                    front_bytes = f.read()
+                back_bytes = None
+                if image_back_path:
+                    with open(image_back_path, "rb") as f:
+                        back_bytes = f.read()
+                front_emb = emb_svc.embed_image_bytes(front_bytes)
+                back_emb = emb_svc.embed_image_bytes(back_bytes) if back_bytes is not None else None
+                emb_svc.persist_embeddings(card_id=card_id, front_emb=front_emb, back_emb=back_emb)
+            except Exception as e:
+                # If embedding computation/persisting fails, cleanup files and abort
+                CatalogoServicio._borrar_archivo(image_front_path)
+                CatalogoServicio._borrar_archivo(image_back_path)
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Error al generar embeddings: {e}",
+                )
+
             nueva_carta = repositorio.create_carta(
                 db=db,
                 carta_data=carta_payload,

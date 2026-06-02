@@ -51,3 +51,7 @@ class CartasRepositorio:
         db.add(db_carta)
         db.flush()
         return db_carta
+
+    def get_all_cartas(self, db: Session):
+        """Retorna todas las cartas (entidades ORM)."""
+        return db.query(models.Carta).all()

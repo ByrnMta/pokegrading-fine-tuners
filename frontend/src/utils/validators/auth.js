@@ -1,5 +1,13 @@
-const REQUIRED_MESSAGE = 'Requerido'
+// ====== Constantes de validación
+export const REGISTER_COUNTRIES = ['CR', 'PA', 'MX', 'CO', 'CL', 'AR']
+export const REGISTER_LANGUAGES = ['es', 'en']
+const BLOCKED_EMAIL_DOMAINS = ['mailinator.com', 'tempmail.com', '10minutemail.com']
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const MIN_PASSWORD_LENGTH = 8
 
+
+// ====== Mensajes de error
+const REQUIRED_MESSAGE = 'Requerido'
 const PASSWORD_MISMATCH_MESSAGE = 'Las contraseñas no coinciden'
 const INVALID_EMAIL_MESSAGE = 'Formato de correo invalido'
 const BLOCKED_DOMAIN_MESSAGE = 'Dominio de correo no permitido'
@@ -8,14 +16,8 @@ const INVALID_COUNTRY_MESSAGE = 'Pais no soportado'
 const DISCLOSURE_REQUIRED_MESSAGE = 'Debes aceptar el disclosure'
 const INVALID_LANGUAGE_MESSAGE = 'Idioma no valido'
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MIN_PASSWORD_LENGTH = 8
 
-export const REGISTER_COUNTRIES = ['CR', 'PA', 'MX', 'CO', 'CL', 'AR']
-export const REGISTER_LANGUAGES = ['es', 'en']
-
-const BLOCKED_EMAIL_DOMAINS = ['mailinator.com', 'tempmail.com', '10minutemail.com']
-
+// ====== Validaciones
 // Validación de confirmación de contraseña
 export function validatePasswordConfirmation(password, confirmPassword) {
     if (password !== confirmPassword) {

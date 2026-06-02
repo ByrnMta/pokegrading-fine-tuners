@@ -1,7 +1,22 @@
+from logging.config import fileConfig
+
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+
+import sys
+import os
+
 from alembic import context
-from logging.config import fileConfig
+from Base_de_Datos.db import Base
+from Modelos.Rol import Rol  # noqa: F401
+from Modelos.Usuario import Usuario  # noqa: F401
+from Modelos.Cartas import Carta  # noqa: F401
+from Modelos.AuditoriaCarta import AuditoriaCarta  # noqa: F401
+from Modelos.Pais import Pais
+from Modelos.Idioma import Idioma
+from Modelos.DominioCorreoInvalido import DominioCorreoInvalido
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -12,14 +27,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from Base_de_Datos.db import Base
-from Modelos.Usuario import Usuario
-from Modelos.Rol import Rol
-from Modelos.Cartas import Carta
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

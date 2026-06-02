@@ -39,6 +39,20 @@ pip install uvicorn
 pip install sqlalchemy
 ```
 
+### Dependencias para embeddings e imagenes
+
+La busqueda por imagen usa dependencias adicionales. Si instalas manualmente el entorno, asegúrate de incluir:
+```bash
+pip install numpy Pillow torch transformers
+```
+
+Si usas PyTorch en CPU sobre Windows, puedes instalarlo con:
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+```
+
+Si quieres evitar el warning del Hub de Hugging Face, define `HF_TOKEN` antes de arrancar el servidor.
+
 ### Iniciar el servidor del backend
 
 ```

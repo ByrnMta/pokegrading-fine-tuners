@@ -1,13 +1,22 @@
 from io import BytesIO
 
 from fastapi import UploadFile
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageFilter, ImageStat, UnidentifiedImageError
 from sqlalchemy.orm import Session
 
 class EvaluacionCartaValidacion:
 
     TAMANO_MAXIMO_IMAGEN = 10 * 1024 * 1024  # 10MB
     EXTENSIONES_PERMITIDAS = {"jpeg", "png", "heic"}
+
+    # umbral mínimo final de calidad de imagen (con los tres parametros combinados)
+    IQS_UMBRAL_MINIMO = 0.7 
+
+    # Parámetros y sus pesos
+    IQS_PESOS = {"borrosidad": 0.4, "encuadre": 0.3, "iluminacion": 0.3}
+
+    # Umbral mínimo por cada parámetro (borrosidad, encuadre e iluminación) y así poder identificar la causa especifica
+    IQS_MIN_METRICA = 0.7
 
     def validar_tamaño_imagen(db: Session, imagen: UploadFile, errores: dict):
         """Valida que el tamaño de la imagen no exceda los 10MB."""
@@ -63,3 +72,66 @@ class EvaluacionCartaValidacion:
             errores["imagen contenido"] = "El archivo no es una imagen valida."
             return None
         
+    def validar_calidad_imagen(db: Session, imagen: UploadFile, errores: dict):
+        """Valida que la imagen tenga una calidad suficiente que supere un umbral mínimo.
+        En cuanto a borrosidad, encuandre y iluminación."""
+
+        # Primero parte
+        imagen.file.seek(0)
+        data = imagen.file.read()
+        img = Image.open(BytesIO(data))
+        img.load()
+        
+        # Segunda parte
+        gray = img.convert("L")
+        gray.thumbnail((800, 800))
+
+        # Tercera parte:
+        edges = gray.filter(ImageFilter.FIND_EDGES)
+        edge_mean = ImageStat.Stat(edges).mean[0]
+        
+        # Cuarta parte:
+        blur_score = min(1.0, edge_mean / 20.0)
+
+        # Quinta parte:
+        stat = ImageStat.Stat(gray)
+        brightness = stat.mean[0]
+        contrast = stat.stddev[0]
+        brightness_score = max(0.0, 1.0 - abs(brightness - 128.0) / 128.0)
+        contrast_score = min(1.0, contrast / 64.0)
+        lighting_score = (brightness_score + contrast_score) / 2.0
+
+        # Sexta parte:
+        w, h = gray.size
+        band_x = max(1, int(w * 0.1))
+        band_y = max(1, int(h * 0.1))
+        outer = edges.crop((0, 0, w, h))
+        center = edges.crop((band_x, band_y, w - band_x, h - band_y))
+
+        # Séptima parte:
+        outer_mean = ImageStat.Stat(outer).mean[0]
+        center_mean = ImageStat.Stat(center).mean[0] if center.size[0] > 0 and center.size[1] > 0 else 0.0
+        ratio = outer_mean / (center_mean + 1e-6)
+        framing_score = min(1.0, ratio / 1.2) * min(1.0, outer_mean / 10.0)
+
+        # Octava parte: se combinan las métricas con sus pesos para obtener un índice de calidad de imagen (IQS)
+        pesos = EvaluacionCartaValidacion.IQS_PESOS
+        iqs = (
+            blur_score * pesos["borrosidad"]
+            + framing_score * pesos["encuadre"]
+            + lighting_score * pesos["iluminacion"]
+        )
+
+        causas = []
+        if blur_score < EvaluacionCartaValidacion.IQS_MIN_METRICA:
+            causas.append("borroso")
+        if framing_score < EvaluacionCartaValidacion.IQS_MIN_METRICA:
+            causas.append("mal encuadre")
+        if lighting_score < EvaluacionCartaValidacion.IQS_MIN_METRICA:
+            causas.append("mala iluminacion")
+
+        if iqs < EvaluacionCartaValidacion.IQS_UMBRAL_MINIMO:
+            detalle = ", ".join(causas) if causas else "calidad insuficiente"
+            errores["imagen calidad"] = f"Rechazo por {detalle}."
+            return None
+

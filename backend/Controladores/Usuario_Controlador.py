@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
-from Base_de_Datos.db_session import get_db
+from Datos.db_session import get_db
 from Servicios.logica.Usuario_Servicio import UsuarioServicio
 from Esquemas.UsuarioEsquema import UsuarioCreate
 

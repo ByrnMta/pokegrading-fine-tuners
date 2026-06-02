@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from Base_de_Datos.db import Base
+from Datos.db import Base
 
 class DominioCorreoInvalido(Base):
     """Modelo ORM para representar dominios de correo bloqueados en la base de datos."""

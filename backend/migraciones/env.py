@@ -16,7 +16,8 @@ if config.config_file_name is not None:
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from Base_de_Datos.db import Base
+from Datos.db import Base
+from Modelos.EvaluacionCarta import EvaluacionCarta
 from Modelos.Usuario import Usuario
 from Modelos.Rol import Rol
 from Modelos.Cartas import Carta

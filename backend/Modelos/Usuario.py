@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from Base_de_Datos.db import Base
+from Datos.db import Base
 
 
 # Modelo de usuario, con sus atributos y relaciones (para la base de datos)

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from Base_de_Datos.db_session import get_db
+from Datos.db_session import get_db
 from sqlalchemy.orm import Session
 from Servicios.logica.EvaluacionServicio import EvaluacionCartaServicio
 

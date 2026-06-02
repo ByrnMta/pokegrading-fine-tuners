@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, status
 from sqlalchemy.orm import Session
 from Servicios.logica.CatalogoServicio import CatalogoServicio
-from Base_de_Datos.db_session import get_db
+from Datos.db_session import get_db
 from Esquemas.CartasEsquema import Carta as CartaEsquema, CartaCreate
 
 router = APIRouter(prefix="/catalogo", tags=["catalogo"])

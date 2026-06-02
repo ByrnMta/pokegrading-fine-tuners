@@ -12,6 +12,19 @@ const STORAGE_KEY = 'auth_user'
 export default function useAuth() {
     const [user, set_user] = useState(null)
 
+    // Función para normalizar los errores de la respuesta del backend, los adapta a un formato consistente
+    const normalizeErrors = (response, fallbackMessage) => {
+        // Extrae el detalle del error según el formato de la respuesta
+        const detail = response?.data?.detail
+        // Si es un objeto se devuelve directamente
+        if (detail && typeof detail === 'object') {
+            return detail
+        }
+        // Si es una cadena, se asigna al error del formulario
+        return { form: response?.message || fallbackMessage }
+    }
+
+    // Intenta cargar el usuario para mantener la sesión activa
     useEffect(() => {
         // Al montar el hook, se intenta cargar el usuario desde localStorage
         const raw = localStorage.getItem(STORAGE_KEY)
@@ -32,12 +45,18 @@ export default function useAuth() {
      * @returns {Promise<Object>} Respuesta de la solicitud.
      */
     const login = async (credentials) => {
-        const res = await api_auth.login(credentials)
-        if (res.user) {
-            set_user(res.user)
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user))
+        // Llama al servicio de autenticación para iniciar sesión
+        const response = await api_auth.login(credentials)
+        // Si la respuesta no es ok, normaliza los errores y los devuelve
+        if (!response.ok) {
+            return { ok: false, errors: normalizeErrors(response, 'Error en el inicio de sesion') }
         }
-        return res
+        // Si la respuesta es ok se establece el estado y se guarda en localStorage para persistencia
+        if (response.data?.user) {
+            set_user(response.data.user)
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data.user))
+        }
+        return { ok: true, data: response.data }
     }
 
     /**
@@ -47,17 +66,23 @@ export default function useAuth() {
      * @returns {Promise<Object>} Respuesta de la solicitud.
      */
     const register = async (data) => {
-        const res = await api_auth.register(data)
-        if (res.user) {
-            set_user(res.user)
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user))
+        // Llama al servicio de autenticación para registrar un nuevo usuario
+        const response = await api_auth.register(data)
+        // Si la respuesta no es ok, normaliza los errores y los devuelve
+        if (!response.ok) {
+            return { ok: false, errors: normalizeErrors(response, 'Error al registrar la cuenta') }
         }
-        return res
+        // Si la respuesta es ok se establece el estado y se guarda en localStorage para persistencia
+        if (response.data?.user) {
+            set_user(response.data.user)
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data.user))
+        }
+        return { ok: true, data: response.data }
     }
 
     /**
      * Función para cerrar sesión.
-    * Limpia el estado del usuario y elimina los datos de localStorage.
+     * Limpia el estado del usuario y elimina los datos de localStorage.
      */
     const logout = () => {
         set_user(null)

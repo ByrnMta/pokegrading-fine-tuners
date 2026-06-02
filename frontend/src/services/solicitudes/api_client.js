@@ -48,18 +48,29 @@ async function request(path, options = {}) {
     const isJson = contentType.includes('application/json')
     const data = isJson ? await response.json() : await response.text()
 
-    // Si la respuesta no es ok, lanzar un error con el mensaje adecuado
+    // Si la respuesta no es ok, separar errores esperados (4xx) de inesperados
     if (!response.ok) {
-        const message = (data && (data.detail || data.message)) || 
-                        (typeof data === 'string' && data) || 
-                        'Fallo en la solicitud'
+        
+        // Extrae mensaje de error según el formato de la respuesta
+        const message = (data && (data.detail || data.message)) || (typeof data === 'string' && data) || 'Fallo en la solicitud'
+        
+        // Define un rango entre 400 y 499 como errores esperados, el resto como inesperados
+        const isExpected = response.status >= 400 && response.status < 500
+
+        // Si es un error esperado, devuelve un objeto con los detalles del error
+        if (isExpected) {
+            return { ok: false, status: response.status, data, message }
+        }
+
+        // Lanza un error inesperado, incluyendo el status y data para depuración (capturado por los catch en los componentes)
         const error = new Error(message)
         error.status = response.status
         error.data = data
         throw error
     }
 
-    return data
+    // Si la respuesta es ok, devuelve un objeto con los datos de la respuesta
+    return { ok: true, data }
 }
 
 /**

@@ -4,7 +4,7 @@ import AddCardForm from '../components/cards/AddCardForm'
 
 export default function AdminView() {
     const { pathname } = useLocation()
-    const isCards = pathname === '/admin/cards'
+    const isCards = pathname === '/admin/addcards'
     const title = isCards ? 'Agregar carta' : 'Catálogo de cartas'
 
     const sectionClassName =

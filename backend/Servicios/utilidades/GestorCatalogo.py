@@ -30,7 +30,7 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "heic"}
 MIN_WIDTH = 200
 MIN_HEIGHT = 200
-UPLOAD_DIR = "uploads"
+DATA_ROOT = os.path.join("Datos", "catalogo")
 
 CANONICAL_RARITIES = {
     "common",
@@ -108,11 +108,12 @@ class CatalogoServicio:
             )
 
         card_id = CatalogoServicio._generar_card_id()
+        card_dir = CatalogoServicio._crear_directorio_carta(card_id)
         image_front_path, image_back_path = CatalogoServicio._guardar_imagenes(
             card_id=card_id,
+            card_dir=card_dir,
             imagen_frontal=imagen_frontal,
             imagen_reverso=imagen_reverso,
-            upload_dir=UPLOAD_DIR,
         )
 
         carta_payload = {**identidad, **display, "autor": autor}
@@ -127,7 +128,7 @@ class CatalogoServicio:
         try:
             # Compute and persist embeddings (KISS): read saved image files and persist .npy files
             try:
-                emb_svc = EmbeddingService(embeddings_dir="embeddings")
+                emb_svc = EmbeddingService(catalogo_dir=DATA_ROOT)
                 with open(image_front_path, "rb") as f:
                     front_bytes = f.read()
                 back_bytes = None
@@ -136,11 +137,10 @@ class CatalogoServicio:
                         back_bytes = f.read()
                 front_emb = emb_svc.embed_image_bytes(front_bytes)
                 back_emb = emb_svc.embed_image_bytes(back_bytes) if back_bytes is not None else None
-                emb_svc.persist_embeddings(card_id=card_id, front_emb=front_emb, back_emb=back_emb)
+                emb_svc.persist_embeddings(card_id=card_id, front_emb=front_emb, back_emb=back_emb, card_dir=card_dir)
             except Exception as e:
                 # If embedding computation/persisting fails, cleanup files and abort
-                CatalogoServicio._borrar_archivo(image_front_path)
-                CatalogoServicio._borrar_archivo(image_back_path)
+                CatalogoServicio._borrar_directorio(card_dir)
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=f"Error al generar embeddings: {e}",
@@ -166,13 +166,11 @@ class CatalogoServicio:
             return nueva_carta
         except HTTPException:
             db.rollback()
-            CatalogoServicio._borrar_archivo(image_front_path)
-            CatalogoServicio._borrar_archivo(image_back_path)
+            CatalogoServicio._borrar_directorio(card_dir)
             raise
         except Exception as e:
             db.rollback()
-            CatalogoServicio._borrar_archivo(image_front_path)
-            CatalogoServicio._borrar_archivo(image_back_path)
+            CatalogoServicio._borrar_directorio(card_dir)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error interno al guardar la carta: {e}",
@@ -317,29 +315,39 @@ class CatalogoServicio:
         return str(uuid.uuid4())
 
     @staticmethod
+    def _crear_directorio_carta(card_id: str) -> str:
+        """Crea la carpeta Datos/catalogo/card_id."""
+        card_dir = os.path.join(DATA_ROOT, card_id)
+        os.makedirs(card_dir, exist_ok=True)
+        os.makedirs(os.path.join(card_dir, "images"), exist_ok=True)
+        os.makedirs(os.path.join(card_dir, "embeds"), exist_ok=True)
+        return card_dir
+
+    @staticmethod
     def _guardar_imagenes(
         card_id: str,
+        card_dir: str,
         imagen_frontal: UploadFile,
         imagen_reverso: UploadFile,
-        upload_dir: str,
     ) -> Tuple[str, str]:
         """Guarda ambas imágenes y revierte la primera si la segunda falla."""
-        ruta_frontal = CatalogoServicio._guardar_imagen(card_id, "front", imagen_frontal, upload_dir)
+        ruta_frontal = CatalogoServicio._guardar_imagen(card_id, "front", imagen_frontal, card_dir)
         try:
-            ruta_reverso = CatalogoServicio._guardar_imagen(card_id, "back", imagen_reverso, upload_dir)
+            ruta_reverso = CatalogoServicio._guardar_imagen(card_id, "back", imagen_reverso, card_dir)
         except Exception:
             CatalogoServicio._borrar_archivo(ruta_frontal)
             raise
         return ruta_frontal, ruta_reverso
 
     @staticmethod
-    def _guardar_imagen(card_id: str, sufijo: str, imagen: UploadFile, upload_dir: str) -> str:
+    def _guardar_imagen(card_id: str, sufijo: str, imagen: UploadFile, card_dir: str) -> str:
         """Persiste una imagen en disco usando el card_id como prefijo."""
         try:
             extension = CatalogoServicio._obtener_extension(imagen.filename)
-            nombre_archivo = f"{card_id}_{sufijo}.{extension}"
-            os.makedirs(upload_dir, exist_ok=True)
-            ruta_archivo = os.path.join(upload_dir, nombre_archivo)
+            nombre_archivo = f"{sufijo}.{extension}"
+            images_dir = os.path.join(card_dir, "images")
+            os.makedirs(images_dir, exist_ok=True)
+            ruta_archivo = os.path.join(images_dir, nombre_archivo)
 
             imagen.file.seek(0)
             with open(ruta_archivo, "wb") as f:
@@ -359,6 +367,28 @@ class CatalogoServicio:
         try:
             if os.path.exists(ruta_archivo):
                 os.remove(ruta_archivo)
+        except Exception:
+            return
+
+    @staticmethod
+    def _borrar_directorio(ruta_directorio: Optional[str]) -> None:
+        """Elimina la carpeta de la carta completa si existe."""
+        if not ruta_directorio:
+            return
+        try:
+            if os.path.isdir(ruta_directorio):
+                for root, dirs, files in os.walk(ruta_directorio, topdown=False):
+                    for file_name in files:
+                        try:
+                            os.remove(os.path.join(root, file_name))
+                        except Exception:
+                            pass
+                    for dir_name in dirs:
+                        try:
+                            os.rmdir(os.path.join(root, dir_name))
+                        except Exception:
+                            pass
+                os.rmdir(ruta_directorio)
         except Exception:
             return
         

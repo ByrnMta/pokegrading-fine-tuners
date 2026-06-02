@@ -6,3 +6,8 @@ html{
 	background-size: 224px;
 	color-scheme: dark light;
 }
+
+select option {
+	color: #ffffff;
+	background: #13151a;
+}

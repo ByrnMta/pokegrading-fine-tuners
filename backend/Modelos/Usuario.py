@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.sql import func
-from Base_de_Datos.db import Base
+from sqlalchemy.orm import relationship
+from Datos.db import Base
 
 
 # Modelo de usuario, con sus atributos y relaciones (para la base de datos)
@@ -15,4 +16,8 @@ class Usuario(Base):
     correo = Column(String(100), unique=True, index=True, nullable=False)
     contrasena = Column(String(100), nullable=False)
     ultimo_acceso = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
+
+    # Relación con evaluación de carta
+    # se coloca el nombre de la clase Usuario, no el nombre de la tabla, y se agrega backref para facilitar el acceso desde Usuario a EvaluacionCarta
+    evaluaciones_carta = relationship("EvaluacionCarta", backref="usuario")
     

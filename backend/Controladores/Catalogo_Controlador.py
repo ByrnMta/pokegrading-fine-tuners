@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException
 from sqlalchemy.orm import Session
 from Servicios.utilidades.GestorCatalogo import CatalogoServicio
-from Base_de_Datos.db_session import get_db
+from Datos.db_session import get_db
 from Esquemas.CartasEsquema import Carta as CartaEsquema, CartaCreate
 
 """Router HTTP para operaciones del catálogo."""

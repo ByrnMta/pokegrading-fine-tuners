@@ -1,4 +1,4 @@
 -- Se insertan los idiomas predeterminados
 INSERT INTO idioma (nombre) VALUES
-('Español'), -- id 1
-('Inglés'); -- id 2
+('es'), -- id 1
+('en'); -- id 2

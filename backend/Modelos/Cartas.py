@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.sql import func
-from Base_de_Datos.db import Base
+from Datos.db import Base
 
 class Carta(Base):
     __tablename__ = "cartas"

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
-from Base_de_Datos.db import Base
+from Datos.db import Base
 
 # Modelo de País, con sus atributos y relaciones (para la base de datos)
 class Pais(Base):

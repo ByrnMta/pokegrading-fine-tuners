@@ -106,4 +106,3 @@ class UsuarioValidacion:
             errores['idioma inválido'] = "El idioma seleccionado no es válido."
             return None
         
-        # Aquí se podría agregar una validación similar a la de país si se tuviera una tabla de idiomas en la base de datos

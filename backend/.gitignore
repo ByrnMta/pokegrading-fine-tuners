@@ -12,3 +12,5 @@ __pycache__/
 *.log
 *.db
 migraciones/versions
+Datos/Auditoria/auditoria.log
+Datos/evaluacion_carta_imagenes

@@ -15,25 +15,25 @@ class EvaluacionCartaServicio:
         errores = {}
         try:
             # Validación de la toma frontal 
-            EvaluacionCartaValidacion.validar_tamaño_imagen(db, toma_frontal, errores)
-            EvaluacionCartaValidacion.validar_formato_imagen(db, toma_frontal, errores)
-            EvaluacionCartaValidacion.validar_deteccion_polyglot(db, toma_frontal, errores)
+            EvaluacionCartaValidacion.validar_tamaño_imagen(db, toma_frontal, id_usuario, errores)
+            EvaluacionCartaValidacion.validar_formato_imagen(db, toma_frontal, id_usuario, errores)
+            EvaluacionCartaValidacion.validar_deteccion_polyglot(db, toma_frontal, id_usuario, errores)
 
             if errores:
                 return {"errores": errores}
             
             # Validación de la toma reversa
-            EvaluacionCartaValidacion.validar_tamaño_imagen(db, toma_reversa, errores)
-            EvaluacionCartaValidacion.validar_formato_imagen(db, toma_reversa, errores)
-            EvaluacionCartaValidacion.validar_deteccion_polyglot(db, toma_reversa, errores)
+            EvaluacionCartaValidacion.validar_tamaño_imagen(db, toma_reversa, id_usuario, errores)
+            EvaluacionCartaValidacion.validar_formato_imagen(db, toma_reversa, id_usuario, errores)
+            EvaluacionCartaValidacion.validar_deteccion_polyglot(db, toma_reversa, id_usuario, errores)
 
             if errores:
                 return {"errores": errores}
 
             #validar calidad de imagen de la toma frontal
-            EvaluacionCartaValidacion.validar_calidad_imagen(db, toma_frontal, errores)
+            EvaluacionCartaValidacion.validar_calidad_imagen(db, toma_frontal, id_usuario, errores)
             #validar calidad de imagen de la toma reversa
-            EvaluacionCartaValidacion.validar_calidad_imagen(db, toma_reversa, errores)
+            EvaluacionCartaValidacion.validar_calidad_imagen(db, toma_reversa, id_usuario, errores)
 
             if errores:
                 return {"errores": errores}

@@ -1,8 +1,8 @@
 from io import BytesIO
-
 from fastapi import UploadFile
 from PIL import Image, ImageFilter, ImageStat, UnidentifiedImageError
 from sqlalchemy.orm import Session
+from Servicios.utilidades.AuditoriaUtilidad import agregar_log_evaluacion_carta_fallida
 
 class EvaluacionCartaValidacion:
 
@@ -18,24 +18,26 @@ class EvaluacionCartaValidacion:
     # Umbral mínimo por cada parámetro (borrosidad, encuadre e iluminación) y así poder identificar la causa especifica
     IQS_MIN_METRICA = 0.7
 
-    def validar_tamaño_imagen(db: Session, imagen: UploadFile, errores: dict):
+    def validar_tamaño_imagen(db: Session, imagen: UploadFile, id_usuario: int, errores: dict):
         """Valida que el tamaño de la imagen no exceda los 10MB."""
 
         # Se valida que el tamaño máximo de la imagen sea 10 MB
         if imagen.size > EvaluacionCartaValidacion.TAMANO_MAXIMO_IMAGEN:
             errores['imagen tamaño'] = "El tamaño de la imagen no debe exceder los 10MB."
+            agregar_log_evaluacion_carta_fallida("El tamaño de la imagen excede el límite permitido.", id_usuario)
             return None
-        
-    def validar_formato_imagen(db: Session, imagen: UploadFile, errores: dict):
+
+    def validar_formato_imagen(db: Session, imagen: UploadFile, id_usuario: int, errores: dict):
         """Valida que el formato de la imagen sea JPEG, PNG o HEIC."""
 
         # Se valida que el formato de la imagen sea JPEG, PNG o HEIC
         extension = imagen.filename.split(".")[-1].lower() if "." in imagen.filename else ""
         if extension not in EvaluacionCartaValidacion.EXTENSIONES_PERMITIDAS:
             errores['imagen formato'] = "El formato de la imagen debe ser JPEG, PNG o HEIC."
+            agregar_log_evaluacion_carta_fallida("El formato de la imagen no es válido.", id_usuario)
             return None
-    
-    def validar_deteccion_polyglot(db: Session, imagen: UploadFile, errores: dict):
+
+    def validar_deteccion_polyglot(db: Session, imagen: UploadFile, id_usuario: int, errores: dict):
         """Valida que la imagen no contenga texto en múltiples idiomas (polyglot)."""
 
         # Se valida que la imagen no contenga texto en múltiples idiomas (polyglot)
@@ -44,11 +46,13 @@ class EvaluacionCartaValidacion:
             data = imagen.file.read()
         except Exception:
             errores["imagen contenido"] = "No se pudo leer la imagen."
+            agregar_log_evaluacion_carta_fallida("No se pudo leer la imagen para validación de contenido.", id_usuario)
             return None
                 
         # Se valida que el archivo no esté vacío
         if not data:
             errores["imagen contenido"] = "La imagen está vacía."
+            agregar_log_evaluacion_carta_fallida("La imagen está vacía.", id_usuario)
             return None
 
         # Se valida que el archivo sea una imagen válida
@@ -56,6 +60,7 @@ class EvaluacionCartaValidacion:
             Image.open(BytesIO(data)).verify()
         except (UnidentifiedImageError, OSError, ValueError):
             errores["imagen contenido"] = "El archivo no es una imagen valida (corrupto)."
+            agregar_log_evaluacion_carta_fallida("El archivo no es una imagen válida (corrupto).", id_usuario)
             return None
 
         # Se valida que la imagen no contenga datos extra luego del fin de la imagen
@@ -67,12 +72,14 @@ class EvaluacionCartaValidacion:
                 trailing = img.fp.read()
                 if trailing not in (b"", None):
                     errores["imagen contenido"] = "La imagen contiene datos extra."
+                    agregar_log_evaluacion_carta_fallida("La imagen contiene datos extra luego del fin de la imagen.", id_usuario)
                     return None
         except (UnidentifiedImageError, OSError, ValueError):
             errores["imagen contenido"] = "El archivo no es una imagen valida."
+            agregar_log_evaluacion_carta_fallida("El archivo no es una imagen válida.", id_usuario)
             return None
         
-    def validar_calidad_imagen(db: Session, imagen: UploadFile, errores: dict):
+    def validar_calidad_imagen(db: Session, imagen: UploadFile, id_usuario: int, errores: dict):
         """Valida que la imagen tenga una calidad suficiente que supere un umbral mínimo.
         En cuanto a borrosidad, encuandre y iluminación."""
 
@@ -133,5 +140,6 @@ class EvaluacionCartaValidacion:
         if iqs < EvaluacionCartaValidacion.IQS_UMBRAL_MINIMO:
             detalle = ", ".join(causas) if causas else "calidad insuficiente"
             errores["imagen calidad"] = f"Rechazo por {detalle}."
+            agregar_log_evaluacion_carta_fallida(f"Rechazo por calidad insuficiente: {detalle}.", id_usuario)
             return None
 

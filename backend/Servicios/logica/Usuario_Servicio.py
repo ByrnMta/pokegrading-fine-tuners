@@ -22,11 +22,23 @@ class UsuarioServicio:
             # Validar que el correo sea único
             UsuarioValidacion.unicidad_correo(db, nuevo_usuario.correo, errores)
 
+            # si hay errores de validación, se retornan
+            if errores:
+                return {"errores": errores}
+
             # Validar formato del correo
             UsuarioValidacion.formato_correo_valido(db, nuevo_usuario.correo, errores)
 
+            # si hay errores de validación, se retornan
+            if errores:
+                return {"errores": errores}
+
             # Validar dominio del correo
             UsuarioValidacion.validar_dominio_bloqueado(db, nuevo_usuario.correo, errores)
+
+            # si hay errores de validación, se retornan
+            if errores:
+                return {"errores": errores}
             
             # Validar formato de la contraseña
             UsuarioValidacion.validar_contrasena(db, nuevo_usuario.contrasena, errores)

@@ -9,6 +9,6 @@ class CorreosBloqueadosRepositorio:
         """Verifica si un dominio de correo está bloqueado. Retorna None si está bloqueado, o el mismo dominio si no lo está."""
 
         dominio_bloqueado = db.query(DominioCorreoInvalido).filter(DominioCorreoInvalido.dominio == dominio).first()
-        if dominio_bloqueado:
-            return None  # El dominio está bloqueado       
-        return dominio_bloqueado
+        if not dominio_bloqueado:
+            return None 
+        return dominio # El dominio está bloqueado

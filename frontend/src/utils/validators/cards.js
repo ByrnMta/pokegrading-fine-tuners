@@ -116,3 +116,85 @@ export function validateCardFields(form, frontFile, backFile) {
 
     return err
 }
+
+// Validación de imágenes para el flujo Submitter.
+// En Submitter tanto la imagen frontal como la del reverso son obligatorias.
+export function validateSubmitterImages(frontFile, backFile) {
+    const err = {}
+
+    if (!frontFile) {
+        err.imagen_frontal = REQUIRED_MESSAGE
+    }
+
+    if (!backFile) {
+        err.imagen_reverso = REQUIRED_MESSAGE
+    }
+
+    const frontValidation = validateCardFile(frontFile)
+    if (!frontValidation.ok) {
+        err.imagen_frontal = frontValidation.error
+    }
+
+    const backValidation = validateCardFile(backFile)
+    if (!backValidation.ok) {
+        err.imagen_reverso = backValidation.error
+    }
+
+    return err
+}
+
+// Validación de metadata editable para el flujo Submitter.
+// Se usa antes del envío final, no necesariamente antes de comparar.
+export function validateSubmitterMetadata(metadata) {
+    const err = {}
+
+    const rarity = String(metadata?.rareza || '').trim().toLowerCase()
+    const tipo = String(metadata?.tipo || '').trim().toLowerCase()
+    const idioma = String(metadata?.idioma || '').trim().toLowerCase()
+
+    if (!metadata?.nombre) {
+        err.nombre = REQUIRED_MESSAGE
+    }
+
+    if (!metadata?.set_name) {
+        err.set_name = REQUIRED_MESSAGE
+    }
+
+    if (!metadata?.numero) {
+        err.numero = REQUIRED_MESSAGE
+    }
+
+    if (!metadata?.edicion) {
+        err.edicion = REQUIRED_MESSAGE
+    }
+
+    if (!metadata?.idioma) {
+        err.idioma = REQUIRED_MESSAGE
+    }
+
+    if (!metadata?.acabado) {
+        err.acabado = REQUIRED_MESSAGE
+    }
+
+    if (metadata?.hp && !/^\d+$/.test(String(metadata.hp))) {
+        err.hp = HP_NUMERIC_MESSAGE
+    }
+
+    if (metadata?.anio_impresion && !/^\d+$/.test(String(metadata.anio_impresion))) {
+        err.anio_impresion = YEAR_NUMERIC_MESSAGE
+    }
+
+    if (rarity && !CANONICAL_RARITIES.includes(rarity)) {
+        err.rareza = INVALID_RARITY_MESSAGE
+    }
+
+    if (tipo && !VALID_TYPES.includes(tipo)) {
+        err.tipo = INVALID_TYPE_MESSAGE
+    }
+
+    if (idioma && !SUPPORTED_LANGUAGES.includes(idioma)) {
+        err.idioma = INVALID_LANGUAGE_MESSAGE
+    }
+
+    return err
+}

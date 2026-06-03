@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from Datos.db_session import get_db
 from sqlalchemy.orm import Session
 from Servicios.logica.EvaluacionServicio import EvaluacionCartaServicio
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/evaluacion-carta", tags=["evaluacion-carta"])
 # ----------------------------------------------------------------------
 @router.post("/enviar-evaluacion")
 def enviar_evaluacion_carta(
-        id_usuario: int,
+        id_usuario: int = Form(...),
         toma_frontal: UploadFile = File(...),
         toma_reversa: UploadFile = File(...),
         db: Session = Depends(get_db)

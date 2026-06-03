@@ -22,9 +22,10 @@ export async function compareSubmitterCard(formData) {
  * Envía una carta para evaluación.
  *
  * Endpoint real:
- * POST /evaluacion-carta/enviar-evaluacion?id_usuario=1
+ * POST /evaluacion-carta/enviar-evaluacion
  *
  * Campos FormData:
+ * - id_usuario
  * - toma_frontal
  * - toma_reversa
  *
@@ -32,5 +33,8 @@ export async function compareSubmitterCard(formData) {
  * @returns {Promise<{ok: boolean, data: any, status?: number, message?: string}>}
  */
 export async function createSubmitterCard(formData) {
-    return postFormData('/evaluacion-carta/enviar-evaluacion?id_usuario=1', formData)
+    if (!formData.has('id_usuario')) {
+        formData.append('id_usuario', 1)
+    }
+    return postFormData('/evaluacion-carta/enviar-evaluacion', formData)
 }

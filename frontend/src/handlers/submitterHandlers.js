@@ -6,6 +6,36 @@ import {
 import { mockSubmitterCandidates } from '../utils/mocks/submitterCandidates'
 import { SUBMITTER_USE_MOCK } from '../constants/submitter'
 
+const DEFAULT_COMPARE_ERROR =
+    'No se pudo comparar la carta. Verifica que el endpoint de comparación esté disponible.'
+const DEFAULT_SUBMIT_ERROR =
+    'No se pudo enviar la carta. Verifica que el endpoint de envío esté disponible.'
+
+function normalizeSubmitterErrorMessage(message, fallback) {
+    if (typeof message === 'string') return message
+
+    if (Array.isArray(message)) {
+        const parts = message
+            .map((item) => {
+                if (typeof item === 'string') return item
+                if (item?.msg) return item.msg
+                if (item?.message) return item.message
+                return ''
+            })
+            .filter(Boolean)
+
+        if (parts.length) return parts.join(' | ')
+    }
+
+    if (message && typeof message === 'object') {
+        if (typeof message.message === 'string') return message.message
+        if (typeof message.detail === 'string') return message.detail
+        return JSON.stringify(message)
+    }
+
+    return fallback
+}
+
 /**
  * Maneja la selección y validación individual de imágenes del flujo Submitter.
  *
@@ -120,7 +150,7 @@ export function buildSubmitterCreateFormData({
     backFile,
 }) {
     const fd = new FormData()
-
+    fd.append('id_usuario', 1) // Valor fijo para pruebas, se puede modificar para usar un ID dinámico si se implementa autenticación
     fd.append('toma_frontal', frontFile)
     fd.append('toma_reversa', backFile)
 
@@ -222,8 +252,10 @@ export async function handleSubmitterCompare({
         if (!response?.ok) {
             setErrors({
                 compare:
-                    response?.message ||
-                    'No se pudo comparar la carta. Verifica que el endpoint de comparación esté disponible.',
+                    normalizeSubmitterErrorMessage(
+                        response?.message,
+                        DEFAULT_COMPARE_ERROR
+                    ),
             })
             return
         }
@@ -417,8 +449,10 @@ export async function handleSubmitterSubmit({
         if (!response?.ok) {
             setErrors({
                 submit:
-                    response?.message ||
-                    'No se pudo enviar la carta. Verifica que el endpoint de envío esté disponible.',
+                    normalizeSubmitterErrorMessage(
+                        response?.message,
+                        DEFAULT_SUBMIT_ERROR
+                    ),
             })
             return
         }

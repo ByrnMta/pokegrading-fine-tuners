@@ -1,27 +1,36 @@
 import { postFormData } from '../solicitudes/api_client'
 
 /**
- * Envía las imágenes de una carta para comparar contra la base de datos.
+ * Compara una carta contra la base de datos.
  *
- * El backend debe devolver hasta 3 candidatos similares con su metadata
- * y porcentaje de similitud.
+ * Endpoint real:
+ * POST /submitter/buscar
  *
- * @param {FormData} formData - FormData con imagen frontal e imagen reverso.
+ * Campos FormData:
+ * - imagen_frontal
+ * - imagen_reverso
+ * - top_k
+ *
+ * @param {FormData} formData
  * @returns {Promise<{ok: boolean, data: any, status?: number, message?: string}>}
  */
 export async function compareSubmitterCard(formData) {
-    return postFormData('/submitter/compare', formData)
+    return postFormData('/submitter/buscar', formData)
 }
 
 /**
- * Envía la carta final del flujo Submitter.
+ * Envía una carta para evaluación.
  *
- * Recibe las imágenes, la metadata editada y opcionalmente el card_id
- * del candidato seleccionado.
+ * Endpoint real:
+ * POST /evaluacion-carta/enviar-evaluacion?id_usuario=1
  *
- * @param {FormData} formData - FormData con imágenes, metadata y candidato seleccionado.
+ * Campos FormData:
+ * - toma_frontal
+ * - toma_reversa
+ *
+ * @param {FormData} formData
  * @returns {Promise<{ok: boolean, data: any, status?: number, message?: string}>}
  */
 export async function createSubmitterCard(formData) {
-    return postFormData('/submitter/cards', formData)
+    return postFormData('/evaluacion-carta/enviar-evaluacion?id_usuario=1', formData)
 }

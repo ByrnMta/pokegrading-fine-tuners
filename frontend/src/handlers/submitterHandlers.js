@@ -100,6 +100,7 @@ export function buildSubmitterCompareFormData({
 
     fd.append('imagen_frontal', frontFile)
     fd.append('imagen_reverso', backFile)
+    fd.append('top_k', '3')
 
     return fd
 }
@@ -120,8 +121,8 @@ export function buildSubmitterCreateFormData({
 }) {
     const fd = new FormData()
 
-    fd.append('imagen_frontal', frontFile)
-    fd.append('imagen_reverso', backFile)
+    fd.append('toma_frontal', frontFile)
+    fd.append('toma_reversa', backFile)
 
     return fd
 }

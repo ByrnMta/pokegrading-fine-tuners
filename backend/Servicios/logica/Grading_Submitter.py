@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
@@ -26,9 +27,9 @@ class Submitter:
 	con nuevas utilidades de submitter en el futuro.
 	"""
 
-	def __init__(self, embeddings_dir: str = "embeddings") -> None:
-		self.embeddings_dir = embeddings_dir
-		self.embedding_service = EmbeddingService(embeddings_dir=embeddings_dir)
+	def __init__(self, catalogo_dir: str = os.path.join("Datos", "catalogo")) -> None:
+		self.catalogo_dir = catalogo_dir
+		self.embedding_service = EmbeddingService(catalogo_dir=catalogo_dir)
 		self.cartas_repo = CartasRepositorio()
 
 	def buscar_imagenes(
@@ -58,7 +59,7 @@ class Submitter:
 
 		resultados = self.embedding_service.search(
 			query_emb=query_emb,
-			embeddings_dir=self.embeddings_dir,
+			catalogo_dir=self.catalogo_dir,
 			top_k=top_k,
 		)
 		evaluacion = self.embedding_service.evaluate_candidates(resultados)

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
 from sqlalchemy.sql import func
-from Base_de_Datos.db import Base
+from Datos.db import Base
 
 """Modelo ORM para la auditoría de altas de cartas."""
 

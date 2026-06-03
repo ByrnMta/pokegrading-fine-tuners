@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from Base_de_Datos.db import Base, engine
+from Datos.db import Base, engine
 from Modelos.Rol import Rol
 from Modelos.Usuario import Usuario
 from Modelos.Cartas import Carta

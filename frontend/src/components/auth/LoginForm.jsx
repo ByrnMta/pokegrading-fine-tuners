@@ -103,6 +103,10 @@ export default function LoginForm({ on_switch = () => { } }) {
             <button type="button" onClick={() => navigate('/admin')} className="flex w-full justify-center mt-2 rounded-md bg-gray-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
                 Ingresar como administrador (para pruebas)
             </button>
+            <button type="button" onClick={() => navigate('/submitter')} className="flex w-full justify-center mt-2 rounded-md bg-gray-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+                Ingresar como submitter (para pruebas)
+            </button>
+            
             
         </AuthFormContainer>
     )

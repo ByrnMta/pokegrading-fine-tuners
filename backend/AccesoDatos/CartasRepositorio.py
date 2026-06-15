@@ -55,3 +55,29 @@ class CartasRepositorio:
     def get_all_cartas(self, db: Session):
         """Retorna todas las cartas (entidades ORM)."""
         return db.query(models.Carta).all()
+    
+    def get_cartas_by_set_name_and_numero(self, db: Session, set_name: str, numero: str) -> list[dict] | None:
+        """Busca cartas por set_name y numero, siempre y cuando estén activas."""
+        
+        # Se buscan las cartas con el set_name y numero proporcionados (todas las posibles coincidencias), se obtiene una lista de cartas
+        cartas = db.query(models.Carta).filter(
+            models.Carta.set_name == set_name,
+            models.Carta.numero == numero,
+            models.Carta.estado == "ACTIVA"
+        ).all()
+
+        # Se ajusta el formato de las cartas
+        cartas_respuesa = [self.cartaModel_to_cartaBase(carta) for carta in cartas]
+
+        return cartas_respuesa  # lo que se retorna es una lista de cartas
+
+    def cartaModel_to_cartaBase(self, carta_model: models.Carta) -> dict:
+        """Convierte un modelo de carta a un diccionario con los campos de CartaBase."""
+        return {
+            "set_name": carta_model.set_name,
+            "numero": carta_model.numero,
+            "edicion": carta_model.edicion,
+            "idioma": carta_model.idioma,
+            "acabado": carta_model.acabado
+        }
+    

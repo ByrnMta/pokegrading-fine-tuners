@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 
 from AccesoDatos.CartasRepositorio import CartasRepositorio
 from AccesoDatos.AuditoriaRepositorio import AuditoriaRepositorio
+from AccesoDatos.ArchivosRepositorio import ArchivosRepositorio
 from Esquemas.CartasEsquema import CartaCreate
-from Servicios.utilidades.BuscadorImagenes import EmbeddingService
+from Servicios.utilidades.EmbeddingService import EmbeddingService
 from Servicios.validaciones.CatalogoValidacion import CatalogoValidacion
-from Servicios.utilidades.CatalogoFileManager import CatalogoFileManager
 
 """Lógica de negocio para el alta de cartas en el catálogo.
 
@@ -75,9 +75,9 @@ class CatalogoServicio:
             )
 
         # 3. Generar identificador y guardar imágenes
-        card_id = CatalogoFileManager.generar_card_id()
+        card_id = ArchivosRepositorio.generar_card_id()
         try:
-            image_front_path, image_back_path = CatalogoFileManager.guardar_imagenes(
+            image_front_path, image_back_path = ArchivosRepositorio.guardar_imagenes(
                 card_id=card_id,
                 imagen_frontal=imagen_frontal,
                 imagen_reverso=imagen_reverso,
@@ -86,7 +86,7 @@ class CatalogoServicio:
             # En caso de error al guardar imágenes, limpiar directorio si se creó
             card_dir = os.path.join(DATA_ROOT, card_id)
             if os.path.exists(card_dir):
-                CatalogoFileManager.borrar_directorio_carta(card_dir)
+                ArchivosRepositorio.borrar_directorio_carta(card_dir)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error al guardar las imágenes: {str(e)}",
@@ -154,15 +154,13 @@ class CatalogoServicio:
         try:
             emb_svc = EmbeddingService(catalogo_dir=DATA_ROOT)
             
-            # Leer y procesar imagen frontal
-            with open(image_front_path, "rb") as f:
-                front_bytes = f.read()
+            # Leer y procesar imagen frontal usando ArchivosRepositorio
+            front_bytes = ArchivosRepositorio.leer_imagen(image_front_path)
             
             # Leer y procesar imagen reverso (si existe)
             back_bytes = None
             if image_back_path:
-                with open(image_back_path, "rb") as f:
-                    back_bytes = f.read()
+                back_bytes = ArchivosRepositorio.leer_imagen(image_back_path)
             
             # Generar embeddings
             front_emb = emb_svc.embed_image_bytes(front_bytes)
@@ -181,7 +179,7 @@ class CatalogoServicio:
             # Limpiar archivos en caso de error
             card_dir = os.path.join(DATA_ROOT, card_id)
             if os.path.exists(card_dir):
-                CatalogoFileManager.borrar_directorio_carta(card_dir)
+                ArchivosRepositorio.borrar_directorio_carta(card_dir)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error al generar embeddings: {str(e)}",
@@ -191,10 +189,10 @@ class CatalogoServicio:
     def _limpiar_en_error(card_id: str, image_front_path: str, image_back_path: Optional[str]) -> None:
         """Limpia recursos creados en caso de error durante el proceso."""
         # Borrar archivos de imágenes si existen
-        CatalogoFileManager.borrar_archivo(image_front_path)
+        ArchivosRepositorio.borrar_archivo(image_front_path)
         if image_back_path:
-            CatalogoFileManager.borrar_archivo(image_back_path)
+            ArchivosRepositorio.borrar_archivo(image_back_path)
         
         # Borrar directorio de la carta
         card_dir = os.path.join(DATA_ROOT, card_id)
-        CatalogoFileManager.borrar_directorio_carta(card_dir)
+        ArchivosRepositorio.borrar_directorio_carta(card_dir)

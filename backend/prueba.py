@@ -28,6 +28,6 @@ prueba1_dict={
   "lista_cartas_consultar": [
     {"set_name": "SM1", "numero": "12", "edicion": "1st", "idioma": "es", "acabado": "Holo"},
     {"set_name": "futbol", "numero": "123456", "edicion": "limitada", "idioma": "es", "acabado": "bacano"},
-    {"set_name": "SL3", "numero": "3", "edicion": "limitada", "idioma": "en", "acabado": "feo"}
+    {"set_name": "beisbol", "numero": "654321", "edicion": "", "idioma": "", "acabado": ""}
   ]
 }

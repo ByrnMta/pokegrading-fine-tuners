@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from Servicios.validaciones.API_B2BValidacion import API_B2BValidacion
 from AccesoDatos.API_B2BRepositorio import API_B2BRepositorio
 from Esquemas.CartasEsquema import CartaConsultaB2B
+from Servicios.utilidades.AuditoriaUtilidad import agregar_log_consulta_catalogo_B2B
 
 class API_B2BServicio:
 
@@ -13,7 +14,7 @@ class API_B2BServicio:
         respuesta = []
         try:
             # Se valida el API key
-            API_B2BValidacion.validar_api_key(db, API_key, errores)
+            tienda = API_B2BValidacion.validar_api_key(db, API_key, errores)
             if errores:
                 return {"errores": errores}
 
@@ -21,6 +22,9 @@ class API_B2BServicio:
             API_B2BValidacion.validar_lista_cartas(db, lista_cartas, respuesta, errores)
             if errores:
                 return {"errores": errores}
+
+            # Se hace un registro de auditoría de la consulta realizada
+            agregar_log_consulta_catalogo_B2B(tienda.id)
 
             return {"respuesta": respuesta} # se regresa como respuesta la lista de cartas enviada con su respuesta
         except Exception as e:

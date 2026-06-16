@@ -4,11 +4,12 @@ from AccesoDatos.API_B2BRepositorio import API_B2BRepositorio
 from AccesoDatos.CartasRepositorio import CartasRepositorio
 from passlib.context import CryptContext
 from Esquemas.CartasEsquema import CartaConsultaB2B
+from Modelos.TiendaB2B import TiendaB2B
 
 
 class API_B2BValidacion:
 
-    def validar_api_key(db: Session, API_key: str, errores: dict):
+    def validar_api_key(db: Session, API_key: str, errores: dict) -> TiendaB2B | None:
         """Valida que el API key sea válido."""
         
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

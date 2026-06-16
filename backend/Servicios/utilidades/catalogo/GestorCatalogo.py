@@ -7,7 +7,7 @@ from AccesoDatos.CartasRepositorio import CartasRepositorio
 from AccesoDatos.AuditoriaRepositorio import AuditoriaRepositorio
 from AccesoDatos.ArchivosRepositorio import ArchivosRepositorio
 from Esquemas.CartasEsquema import CartaCreate
-from Servicios.utilidades.EmbeddingService import EmbeddingService
+from Servicios.utilidades.catalogo.EmbeddingService import EmbeddingService
 from Servicios.validaciones.CatalogoValidacion import CatalogoValidacion
 
 """Lógica de negocio para el alta de cartas en el catálogo.

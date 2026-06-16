@@ -17,13 +17,13 @@ try:
     print("✓ ArchivosRepositorio importado correctamente")
     
     # Probar importación de GestorCatalogo
-    from Servicios.utilidades.GestorCatalogo import CatalogoServicio
+    from backend.Servicios.utilidades.catalogo.GestorCatalogo import CatalogoServicio
     print("✓ GestorCatalogo importado correctamente")
     
     # Probar importación de servicios de embeddings
-    from Servicios.utilidades.EmbeddingService import EmbeddingService
-    from Servicios.utilidades.EmbeddingGenerator import EmbeddingGenerator
-    from Servicios.utilidades.EmbeddingSearcher import EmbeddingSearcher
+    from backend.Servicios.utilidades.catalogo.EmbeddingService import EmbeddingService
+    from backend.Servicios.utilidades.catalogo.EmbeddingGenerator import EmbeddingGenerator
+    from backend.Servicios.utilidades.catalogo.EmbeddingSearcher import EmbeddingSearcher
     print("✓ Servicios de embeddings importados correctamente")
     
     # Verificar que las constantes existan

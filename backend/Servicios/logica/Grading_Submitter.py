@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from AccesoDatos.CartasRepositorio import CartasRepositorio
 from Modelos import Cartas as models
-from Servicios.utilidades.EmbeddingService import EmbeddingService
+from Servicios.utilidades.catalogo.EmbeddingService import EmbeddingService
 
 
 @dataclass

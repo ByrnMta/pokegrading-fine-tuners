@@ -3,8 +3,8 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from AccesoDatos.ArchivosRepositorio import ArchivosRepositorio
-from Servicios.utilidades.EmbeddingGenerator import EmbeddingGenerator
-from Servicios.utilidades.EmbeddingSearcher import EmbeddingSearcher
+from Servicios.utilidades.catalogo.EmbeddingGenerator import EmbeddingGenerator
+from Servicios.utilidades.catalogo.EmbeddingSearcher import EmbeddingSearcher
 
 logger = logging.getLogger(__name__)
 

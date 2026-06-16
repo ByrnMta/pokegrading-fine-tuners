@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, Body, Form
 from Datos.db_session import get_db
 from sqlalchemy.orm import Session
 from Esquemas.CartasEsquema import CartaConsultaB2B
@@ -11,8 +11,8 @@ router = APIRouter(prefix="/B2B", tags=["b2b"])
 # ----------------------------------------------------------------------
 @router.post("/consulta-catalogo-b2b")
 def buscar_cartas_catalogo_b2b(
-        API_key: int = Form(...),
-        lista_cartas_consultar: list[dict] = Form(...),
+        API_key: str = Body(...),
+        lista_cartas_consultar: list[dict] = Body(...),
         db: Session = Depends(get_db)
     ):
 
@@ -38,5 +38,21 @@ def buscar_cartas_catalogo_b2b(
 
     if 'errores' in resultado:
         # Si el servicio devuelve errores, se lanza una excepción HTTP con el detalle de los errores
+        raise HTTPException(status_code=400, detail=resultado['errores'])
+    return resultado
+
+# ----------------------------------------------------------------------
+# Endpoint: agregar tienda por API B2B (no fue solicitado)
+# ----------------------------------------------------------------------
+@router.post("/agregar-tienda-b2b")
+def agregar_tienda_b2b(
+        API_key: str = Form(...),
+        db: Session = Depends(get_db)
+    ):
+    resultado = API_B2BServicio.agregar_tienda_b2b(
+        db=db,
+        API_key=API_key
+    )
+    if 'errores' in resultado:
         raise HTTPException(status_code=400, detail=resultado['errores'])
     return resultado

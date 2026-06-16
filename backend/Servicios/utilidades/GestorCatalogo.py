@@ -100,8 +100,8 @@ class CatalogoServicio:
         if errores:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"errores": errores})
 
-        repositorio = CartasRepositorio()
-        if repositorio.get_carta_by_identidad(db, identidad=identidad):
+        #repositorio = CartasRepositorio()
+        if CartasRepositorio.get_carta_by_identidad(db, identidad=identidad):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="La carta con la misma combinación de set, número, edición, idioma y acabado ya existe.",
@@ -146,7 +146,7 @@ class CatalogoServicio:
                     detail=f"Error al generar embeddings: {e}",
                 )
 
-            nueva_carta = repositorio.create_carta(
+            nueva_carta = CartasRepositorio.create_carta(
                 db=db,
                 carta_data=carta_payload,
                 card_id=card_id,

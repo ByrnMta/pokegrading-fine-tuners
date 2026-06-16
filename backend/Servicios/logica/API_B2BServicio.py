@@ -1,9 +1,12 @@
 from sqlalchemy.orm import Session
 from Servicios.validaciones.API_B2BValidacion import API_B2BValidacion
+from AccesoDatos.API_B2BRepositorio import API_B2BRepositorio
+from Esquemas.CartasEsquema import CartaConsultaB2B
 
 class API_B2BServicio:
 
-    def consultar_catalogo_b2b(db: Session, API_key: int, lista_cartas: list[dict]):
+    @staticmethod    
+    def consultar_catalogo_b2b(db: Session, API_key: str, lista_cartas: list[CartaConsultaB2B]):
         """Servicio para consultar el catálogo de cartas por API B2B, que valida los datos recibidos."""
 
         errores = {}
@@ -15,11 +18,27 @@ class API_B2BServicio:
                 return {"errores": errores}
 
             # Se valida la lista de cartas recibidas y se obtienen las cartas encontradas en el catálogo
-            respuesta = API_B2BValidacion.validar_lista_cartas(db, lista_cartas, respuesta, errores)
+            API_B2BValidacion.validar_lista_cartas(db, lista_cartas, respuesta, errores)
             if errores:
                 return {"errores": errores}
 
             return {"respuesta": respuesta} # se regresa como respuesta la lista de cartas enviada con su respuesta
+        except Exception as e:
+            db.rollback()
+            return {"errores": {"internal": f"Error interno: {str(e)}"}}
+        finally:
+            db.close()
+    
+    @staticmethod
+    def agregar_tienda_b2b(db: Session, API_key: str):
+        """Servicio para agregar una tienda por API B2B."""
+
+        errores = {}
+        try:
+            # se agrega la tienda B2B con el API key dado
+            API_B2BRepositorio.agregar_tienda_b2b(db, API_key)
+
+            return {"respuesta": "Tienda agregada exitosamente"}
         except Exception as e:
             db.rollback()
             return {"errores": {"internal": f"Error interno: {str(e)}"}}

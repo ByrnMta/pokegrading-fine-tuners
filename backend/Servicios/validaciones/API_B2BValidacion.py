@@ -2,9 +2,9 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from AccesoDatos.API_B2BRepositorio import API_B2BRepositorio
 from AccesoDatos.CartasRepositorio import CartasRepositorio
-from passlib.context import CryptContext
 from Esquemas.CartasEsquema import CartaConsultaB2B
 from Modelos.TiendaB2B import TiendaB2B
+from Servicios.utilidades.API_B2BUtilidad import hashing_api_key
 
 
 class API_B2BValidacion:
@@ -12,14 +12,15 @@ class API_B2BValidacion:
     def validar_api_key(db: Session, API_key: str, errores: dict) -> TiendaB2B | None:
         """Valida que el API key sea válido."""
         
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        # Hashear la API key entrante
+        API_key_hasheada = hashing_api_key(API_key)
 
         # Se busca la tienda con el API key encriptado
         tiendas = API_B2BRepositorio.obtener_tiendas_B2B(db)
         
         for tienda in tiendas:
             # Se valida que se existe una tienda con el API key proporcionado
-            if pwd_context.verify(API_key, tienda.API_key):
+            if tienda.API_key == API_key_hasheada and tienda.estado == "ACTIVO":
                 return tienda
 
         errores["API_key"] = "API key inválido. No se encontró ninguna tienda asociada a este API key."

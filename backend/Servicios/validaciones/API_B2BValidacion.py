@@ -1,11 +1,14 @@
 from typing import Optional
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
 from AccesoDatos.API_B2BRepositorio import API_B2BRepositorio
 from AccesoDatos.CartasRepositorio import CartasRepositorio
 from Esquemas.CartasEsquema import CartaConsultaB2B
 from Modelos.TiendaB2B import TiendaB2B
 from Servicios.utilidades.API_B2BUtilidad import hashing_api_key
 
+# ventana de tiempo (0.5 minutos)
+IDEMPOTENCY_WINDOW = timedelta(minutes=0.5)
 
 class API_B2BValidacion:
 
@@ -24,6 +27,24 @@ class API_B2BValidacion:
                 return tienda
 
         errores["API_key"] = "API key inválido. No se encontró ninguna tienda asociada a este API key."
+        return None
+
+    def validar_respuesta_cacheada(db: Session, tienda_id: str):
+        """valida que exista una respuesta cacheada (previa) dentro de la ventana de tiempo establecida"""
+
+        # Se valida primero si se adjuntó el identificador propio de la tienda (si es así se busca una respuesta cacheada válida)
+        if not tienda_id:
+            return None
+        
+        # Se obtiene un objeto de RespuestaCacheada para la tienda dada, si existe una respuesta cacheada válida
+        respuesta_cacheada = API_B2BRepositorio.obtener_respuesta_cacheada(db, tienda_id)
+
+        if respuesta_cacheada:
+            # Se comprueba si la respuesta cacheada está dentro de la ventana de tiempo
+            if datetime.utcnow() - respuesta_cacheada.fecha_creacion < IDEMPOTENCY_WINDOW:
+                return respuesta_cacheada.respuesta_body
+        
+        # En este caso no hay error si no hay ninguna respuesta cacheada, se hace la consulta normal de las cartas
         return None
 
     def validar_lista_cartas(db: Session, lista_cartas: list[CartaConsultaB2B], respuesta: list, errores: dict):

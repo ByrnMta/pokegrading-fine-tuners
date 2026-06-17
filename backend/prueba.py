@@ -16,19 +16,19 @@ def prueba():
     ]
 
     palabra = []
+    palabra1 = "s"
 
-    #if palabra is None:
-    #    print("es nulo")
+    if palabra1:
+        print("si existe")
     
+    """
     hash_conocido="cbf06754df2f70dd1f853bdccaec98cc6d8ba861a2a91d357540b9d561b6ceb7"
     hash = hashing_api_key("default123")
     if (hash_conocido ==hashing_api_key("default123")):
         print("es igual")
     
     print(hash)
-
-    #for carta in cartas:
-    #   print(carta["set"])
+    """
 
 def hashing_api_key(API_key: str):
         """Hashea el API key utilizando SHA-256."""
@@ -38,6 +38,7 @@ prueba()
 
 prueba1_dict={
   "API_key": "default123",
+  "tienda_id": "tienda123",
   "lista_cartas_consultar": [
     {"set_name": "SM1", "numero": "12", "edicion": "1st", "idioma": "es", "acabado": "Holo"},
     {"set_name": "futbol", "numero": "123456", "edicion": "limitada", "idioma": "es", "acabado": "bacano"},

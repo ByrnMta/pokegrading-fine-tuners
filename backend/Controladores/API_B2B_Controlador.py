@@ -12,6 +12,7 @@ router = APIRouter(prefix="/B2B", tags=["b2b"])
 @router.post("/consulta-catalogo-b2b")
 def buscar_cartas_catalogo_b2b(
         API_key: str = Body(...),
+        tienda_id: str = Body(...),
         lista_cartas_consultar: list[dict] = Body(...),
         db: Session = Depends(get_db)
     ):
@@ -32,7 +33,8 @@ def buscar_cartas_catalogo_b2b(
     # Se llama al servicio para hacer la consulta de las cartas en el catálogo
     resultado = API_B2BServicio.consultar_catalogo_b2b(
         db=db, 
-        API_key=API_key, 
+        API_key=API_key,
+        tienda_id=tienda_id,
         lista_cartas=cartas_consultadas
     )
 

@@ -40,6 +40,7 @@ from Modelos.Pais import Pais
 from Modelos.Idioma import Idioma
 from Modelos.DominioCorreoInvalido import DominioCorreoInvalido
 from Modelos.TiendaB2B import TiendaB2B
+from Modelos.RespuestaCacheadaB2B import RespuestaCacheada
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

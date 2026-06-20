@@ -34,8 +34,9 @@ class API_B2BServicio:
 
             respuesta_aux = {"respuesta": respuesta}
 
-            # Se guarda la respuesta como respuesta cacheada para esta tienda
-            API_B2BRepositorio.guardar_respuesta_cacheada(db, tienda_id, respuesta_aux)
+            # Se guarda la respuesta como respuesta cacheada para esta tienda si hay un idenficador de tienda proporcionado 
+            if tienda_id:
+                API_B2BRepositorio.guardar_respuesta_cacheada(db, tienda_id, respuesta_aux)
 
             return respuesta_aux # se regresa como respuesta la lista de cartas enviada con su respuesta
         except Exception as e:

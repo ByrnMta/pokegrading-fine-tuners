@@ -9,7 +9,7 @@ router = APIRouter(prefix="/evaluacion-carta", tags=["evaluacion-carta"])
 # ----------------------------------------------------------------------
 # Endpoint: enviar evaluación de carta
 # ----------------------------------------------------------------------
-@router.post("/enviar-evaluacion")
+@router.post("/enviar-evaluacion", status_code=201)
 def enviar_evaluacion_carta(
         id_usuario: int = Form(...),
         toma_frontal: UploadFile = File(...),

@@ -9,14 +9,14 @@ router = APIRouter(prefix="/B2B", tags=["b2b"])
 # ----------------------------------------------------------------------
 # Endpoint: consulta de catálogo de cartas por API B2B
 # ----------------------------------------------------------------------
-@router.post("/consulta-catalogo-b2b")
+@router.post("/consulta-catalogo-b2b", status_code=200)
 def buscar_cartas_catalogo_b2b(
         API_key: str = Body(...),
         tienda_id: str = Body(...),
         lista_cartas_consultar: list[dict] = Body(...),
         db: Session = Depends(get_db)
     ):
-
+    
     cartas_consultadas = []
 
     # Se colocan los datos de las cartas en el formato interno

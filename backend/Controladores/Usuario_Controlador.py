@@ -9,7 +9,7 @@ router = APIRouter(prefix="/usuario", tags=["usuarios"])
 # ----------------------------------------------------------------------
 # Endpoint: registro nuevo usuario
 # ----------------------------------------------------------------------
-@router.post("/registro")
+@router.post("/registro", status_code=201)
 def registrar_usuario(
         nombre_usuario: str = Form(...),
         correo: str = Form(...),

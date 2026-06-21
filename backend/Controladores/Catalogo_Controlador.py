@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException
 from sqlalchemy.orm import Session
-from Servicios.utilidades.catalogo.GestorCatalogo import CatalogoServicio
+from Servicios.logica.GestorCatalogo import CatalogoServicio
 from Datos.db_session import get_db
 from Esquemas.CartasEsquema import Carta as CartaEsquema, CartaCreate
 

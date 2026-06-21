@@ -55,3 +55,12 @@ class Carta(CartaBase, CartaDisplay):
 
     class Config:
         from_attributes = True
+
+class CartaConsultaB2B(CartaBase):
+    """Representación de carta para consulta B2B."""
+    
+    set_name: str
+    numero: str
+    edicion: Optional[str] = None
+    idioma: Optional[str] = None
+    acabado: Optional[str] = None

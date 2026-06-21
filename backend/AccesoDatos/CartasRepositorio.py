@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from Modelos import Cartas as models
+from Esquemas.CartasEsquema import CartaConsultaB2B
 
 """Acceso a datos para la entidad Carta.
 
@@ -10,7 +11,7 @@ lógica de negocio opere directamente sobre el ORM.
 class CartasRepositorio:
     """Operaciones de persistencia asociadas a cartas."""
 
-    def get_carta_by_identidad(self, db: Session, identidad: dict):
+    def get_carta_by_identidad(db: Session, identidad: dict):
         """Busca una carta por la combinación que define su identidad única."""
         return db.query(models.Carta).filter(
             models.Carta.set_name == identidad["set_name"],
@@ -21,7 +22,6 @@ class CartasRepositorio:
         ).first()
 
     def create_carta(
-        self,
         db: Session,
         carta_data: dict,
         card_id: str,
@@ -52,6 +52,33 @@ class CartasRepositorio:
         db.flush()
         return db_carta
 
-    def get_all_cartas(self, db: Session):
+    def get_all_cartas(db: Session):
         """Retorna todas las cartas (entidades ORM)."""
         return db.query(models.Carta).all()
+    
+    def get_cartas_by_set_name_and_numero(db: Session, set_name: str, numero: str) -> list | None:
+        """Busca cartas por set_name y numero, siempre y cuando estén activas."""
+        
+        # Se buscan las cartas con el set_name y numero proporcionados (todas las posibles coincidencias), se obtiene una lista de cartas
+        cartas = db.query(models.Carta).filter(
+            models.Carta.set_name == set_name,
+            models.Carta.numero == numero,
+            models.Carta.estado == "ACTIVA"
+        ).all()
+
+        # Se ajusta el formato de las cartas
+        cartas_respuesa = [CartasRepositorio.cartaModel_to_cartaConsultaB2B(carta) for carta in cartas]
+
+        return cartas_respuesa  # lo que se retorna es una lista de cartas
+
+    @staticmethod
+    def cartaModel_to_cartaConsultaB2B(carta_model: models.Carta) -> CartaConsultaB2B:
+        """Convierte un modelo de carta a un diccionario con los campos de CartaBase."""
+        return CartaConsultaB2B(
+            set_name=carta_model.set_name,
+            numero=carta_model.numero,
+            edicion=carta_model.edicion,
+            idioma=carta_model.idioma,
+            acabado=carta_model.acabado
+        )
+    

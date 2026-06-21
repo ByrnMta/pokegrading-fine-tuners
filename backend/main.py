@@ -13,6 +13,7 @@ from Controladores.Usuario_Controlador import router as usuario_router
 from Controladores.Catalogo_Controlador import router as admin_router
 from Controladores.Buscar_Carta_Controlador import router as submitter_router
 from Controladores.EvaluacionCarta_Controlador import router as evaluacion_carta_router
+from Controladores.API_B2B_Controlador import router as api_b2b_router
 
 # Dependencia para obtener la sesión de base de datos
 from Datos.db_session import get_db
@@ -45,3 +46,4 @@ app.include_router(usuario_router)
 app.include_router(evaluacion_carta_router)
 app.include_router(submitter_router)
 app.include_router(admin_router)
+app.include_router(api_b2b_router)

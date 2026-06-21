@@ -67,8 +67,8 @@ class CatalogoServicio:
             )
 
         # 2. Verificar unicidad de la carta
-        repositorio = CartasRepositorio()
-        if repositorio.get_carta_by_identidad(db, identidad=identidad):
+        #repositorio = CartasRepositorio()
+        if CartasRepositorio.get_carta_by_identidad(db, identidad=identidad):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="La carta con la misma combinación de set, número, edición, idioma y acabado ya existe.",
@@ -112,7 +112,7 @@ class CatalogoServicio:
             )
 
             # Crear carta y auditoría en transacción
-            nueva_carta = repositorio.create_carta(
+            nueva_carta = CartasRepositorio.create_carta(
                 db=db,
                 carta_data=carta_payload,
                 card_id=card_id,

@@ -18,6 +18,17 @@ class EvaluacionCartaValidacion:
     # Umbral mínimo por cada parámetro (borrosidad, encuadre e iluminación) y así poder identificar la causa especifica
     IQS_MIN_METRICA = 0.7
 
+    # Constantes usadas en la evaluación de la imagen
+    TAMANO_REDIMENSIONADO = (800, 800)
+    DIVISOR_BORDE = 20.0
+    MAX_PUNTUACION = 1.0
+    REFERENCIA_BRILLO = 128.0
+    CONTRASTE_DIVISOR = 64.0
+    RADIO_BANDA_CENTRAL = 0.1
+    NORMALIZACION_ENCUADRE = 1.2
+    DIVISOR_MEDIA_EXTERIOR = 10.0
+    EPS = 1e-6
+
     def validar_tamaño_imagen(db: Session, imagen: UploadFile, id_usuario: int, errores: dict):
         """Valida que el tamaño de la imagen no exceda los 10MB."""
 
@@ -82,46 +93,61 @@ class EvaluacionCartaValidacion:
     def validar_calidad_imagen(db: Session, imagen: UploadFile, id_usuario: int, errores: dict):
         """Valida que la imagen tenga una calidad suficiente que supere un umbral mínimo.
         En cuanto a borrosidad, encuandre y iluminación."""
-
-        # Primero parte
+        
+        # Se carga y se prepara la imagen (en la validación anterior se validó que no sea corrupto)
         imagen.file.seek(0)
         data = imagen.file.read()
         img = Image.open(BytesIO(data))
         img.load()
-        
-        # Segunda parte
+
+        # Se pasa la imagen a escala de grises y se redimensiona a un misma proporción para que el procesamiento sea más rapido
         gray = img.convert("L")
-        gray.thumbnail((800, 800))
+        gray.thumbnail(EvaluacionCartaValidacion.TAMANO_REDIMENSIONADO)
 
-        # Tercera parte:
-        edges = gray.filter(ImageFilter.FIND_EDGES)
-        edge_mean = ImageStat.Stat(edges).mean[0]
-        
-        # Cuarta parte:
-        blur_score = min(1.0, edge_mean / 20.0)
+        # Se mide la borrosidad
+        edges = gray.filter(ImageFilter.FIND_EDGES) # aplica un filtro que resalta los bordes, cambios bruscos quedan blanco y zonas uniformes en negro
+        edge_mean = ImageStat.Stat(edges).mean[0] # hace un promedio del brillo de esa imagen de bordes
 
-        # Quinta parte:
+        # Normaliza el valor a un rango de 0 a 1, valor cercano a 1 indica imagen nítida
+        blur_score = min(
+            EvaluacionCartaValidacion.MAX_PUNTUACION,
+            edge_mean / EvaluacionCartaValidacion.DIVISOR_BORDE,
+        )
+
+        # Se mide la iluminación
         stat = ImageStat.Stat(gray)
-        brightness = stat.mean[0]
-        contrast = stat.stddev[0]
-        brightness_score = max(0.0, 1.0 - abs(brightness - 128.0) / 128.0)
-        contrast_score = min(1.0, contrast / 64.0)
+        brightness = stat.mean[0] # se toma el brillo promedio de la imagen
+        contrast = stat.stddev[0] # se toma la disperción de los valores
+        brightness_score = max(
+            0.0,
+            1.0 - abs(brightness - EvaluacionCartaValidacion.REFERENCIA_BRILLO) / EvaluacionCartaValidacion.REFERENCIA_BRILLO,
+        )
+        contrast_score = min(
+            EvaluacionCartaValidacion.MAX_PUNTUACION,
+            contrast / EvaluacionCartaValidacion.CONTRASTE_DIVISOR,
+        )
         lighting_score = (brightness_score + contrast_score) / 2.0
 
-        # Sexta parte:
+        # Se mide el encuadre (la idea es que los bordes de la carta estén en los bordes de la imagen)
         w, h = gray.size
-        band_x = max(1, int(w * 0.1))
-        band_y = max(1, int(h * 0.1))
+        band_x = max(1, int(w * EvaluacionCartaValidacion.RADIO_BANDA_CENTRAL))
+        band_y = max(1, int(h * EvaluacionCartaValidacion.RADIO_BANDA_CENTRAL))
         outer = edges.crop((0, 0, w, h))
         center = edges.crop((band_x, band_y, w - band_x, h - band_y))
 
-        # Séptima parte:
         outer_mean = ImageStat.Stat(outer).mean[0]
-        center_mean = ImageStat.Stat(center).mean[0] if center.size[0] > 0 and center.size[1] > 0 else 0.0
-        ratio = outer_mean / (center_mean + 1e-6)
-        framing_score = min(1.0, ratio / 1.2) * min(1.0, outer_mean / 10.0)
+        center_mean = (
+            ImageStat.Stat(center).mean[0]
+            if center.size[0] > 0 and center.size[1] > 0
+            else 0.0
+        )
+        ratio = outer_mean / (center_mean + EvaluacionCartaValidacion.EPS)
+        framing_score = (
+            min(EvaluacionCartaValidacion.MAX_PUNTUACION, ratio / EvaluacionCartaValidacion.NORMALIZACION_ENCUADRE)
+            * min(EvaluacionCartaValidacion.MAX_PUNTUACION, outer_mean / EvaluacionCartaValidacion.DIVISOR_MEDIA_EXTERIOR)
+        )
 
-        # Octava parte: se combinan las métricas con sus pesos para obtener un índice de calidad de imagen (IQS)
+        # se combinan las métricas con sus pesos para obtener un índice de calidad de imagen (IQS)
         pesos = EvaluacionCartaValidacion.IQS_PESOS
         iqs = (
             blur_score * pesos["borrosidad"]

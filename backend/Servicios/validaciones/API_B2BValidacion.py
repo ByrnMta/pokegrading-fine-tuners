@@ -50,7 +50,7 @@ class API_B2BValidacion:
     def validar_lista_cartas(db: Session, lista_cartas: list[CartaConsultaB2B], respuesta: list, errores: dict):
         """Valida que la lista de cartas recibida tenga el formato correcto."""
 
-        if lista_cartas is None:
+        if not lista_cartas:
             errores['lista_cartas'] = "No hay cartas proporcionadas."
             return None
 

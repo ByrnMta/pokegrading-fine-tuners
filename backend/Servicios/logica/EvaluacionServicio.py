@@ -5,6 +5,7 @@ from Servicios.validaciones.EvaluacionCartaValidacion import EvaluacionCartaVali
 from Servicios.utilidades.EvaluacionCartaUtilidad import crear_ruta_almacenamiento_evaluacion_carta
 from Servicios.utilidades.EvaluacionCartaUtilidad import guardar_imagen_evaluacion_carta
 from AccesoDatos.EvaluacionCartaRepositorio import EvaluacionCartaRepositorio
+from Servicios.utilidades.PreprocesarCartaUtilidad import analyze_card
 
 
 class EvaluacionCartaServicio:
@@ -51,8 +52,13 @@ class EvaluacionCartaServicio:
             guardar_imagen_evaluacion_carta(toma_frontal, toma_frontal_path)
             guardar_imagen_evaluacion_carta(toma_reversa, toma_reversa_path)
 
-            return {"mensaje": "Evaluación de carta registrada exitosamente"}
+            # Se preprocesa la evaluacion recibida (toma frontal)
+            centering, corners, edges, surface = analyze_card(toma_frontal)
 
+            # Prueba de impresión de los resultados del preprocesamiento
+            print(f"Resultados de preprocesamiento: centering={centering}, corners={corners}, edges={edges}, surface={surface}")
+
+            return {"mensaje": "Evaluación de carta registrada exitosamente"}
         except Exception as e:
             db.rollback()
             return {"errores": {"internal": f"Error interno: {str(e)}"}}

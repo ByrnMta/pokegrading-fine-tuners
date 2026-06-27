@@ -1,17 +1,3 @@
-"""
-card_grading.py
----------------
-Módulo de procesamiento de imágenes para calificación de cartas coleccionables.
-
-Función principal:
-    analyze_card(file: UploadFile) -> tuple[float | None, float | None, float | None, float | None]
-    Retorna (centering, corners, edges, surface) como porcentajes 0-100,
-    o None si la carta no pudo ser aislada o tiene distorsión irrecuperable.
-
-Requisitos:
-    pip install opencv-python-headless numpy scipy scikit-image
-"""
-
 from __future__ import annotations
 
 import io
@@ -76,7 +62,6 @@ class CardContour:
     area: float
     angle_deg: float          # ángulo de inclinación estimado
 
-
 @dataclass
 class GradingResult:
     centering: Optional[float]
@@ -89,39 +74,36 @@ class GradingResult:
 # Pipeline principal
 # ---------------------------------------------------------------------------
 
-def analyze_card(image: UploadFile) -> Tuple[Optional[float], Optional[float], Optional[float], Optional[float]]:
+def analizar_carta(image: UploadFile, errores: dict) -> Tuple[Optional[float], Optional[float], Optional[float], Optional[float]]:
     """
-    Recibe un UploadFile (imagen ya validada y limpia) y regresa
-    (centering, corners, edges, surface) como floats 0-100,
+    Recibe un UploadFile (imagen ya validada y limpia) y regresa (centering, corners, edges, surface) floats 0-100,
     o (None, None, None, None) si el procesamiento falla.
 
     Casos de retorno None:
         • No se pudo aislar la carta del fondo  → derivar a calificación manual.
         • Distorsión irrecuperable              → solicitar recaptura.
     """
-    # 1. Leer bytes y decodificar
+
+    # 1. Leer bytes y decodificar la imagen
     image.file.seek(0)
     imagen_bytes = image.file.read()
-    img_bgr = decodificar_imagen(imagen_bytes)
+    img_bgr = decodificar_imagen(imagen_bytes) # es un np.ndarray de OpenCV en formato BGR
     if img_bgr is None:
-        print("analyze_card: no se pudo decodificar la imagen.")
+        errores["imagen"] = "No se pudo decodificar la imagen. Asegúrese de que sea un archivo de imagen válido."
         return None, None, None, None
 
     # 2. Detectar y aislar la carta
     card_contour = _detect_card_contour(img_bgr)
     if card_contour is None:
-        print("analyze_card: no se pudo aislar la carta del fondo → manual.")
+        print("analizar_carta: no se pudo aislar la carta del fondo: revisión manual.")
         return None, None, None, None
 
     # 3. Validar que la distorsión sea corregible
     if card_contour.angle_deg > MAX_WARP_ANGLE_DEG:
-        print(
-            "analyze_card: distorsión irrecuperable (%.1f°) → recapturar.",
-            card_contour.angle_deg,
-        )
+        errores["imagen"] = "Distorsión irrecuperable. Por favor, recapture la imagen."
         return None, None, None, None
 
-    # 4. Corrección de perspectiva → imagen canónica de la carta
+    # 4. Corrección de perspectiva: imagen canónica de la carta
     warped = _correct_perspective(img_bgr, card_contour.quad)
 
     # 5. Normalizar color e iluminación
@@ -133,8 +115,9 @@ def analyze_card(image: UploadFile) -> Tuple[Optional[float], Optional[float], O
     edges     = _score_edges(normalized)
     surface   = _score_surface(normalized)
 
-    return centering, corners, edges, surface
+    print(f"analizar_carta: centering={centering}, corners={corners}, edges={edges}, surface={surface}")
 
+    return centering, corners, edges, surface
 
 # ---------------------------------------------------------------------------
 # Paso 1 – Decodificación
@@ -146,7 +129,6 @@ def decodificar_imagen(data: bytes) -> Optional[np.ndarray]:
     array_numpy = np.frombuffer(data, dtype=np.uint8)
     img = cv2.imdecode(array_numpy, cv2.IMREAD_COLOR)
     return img  # None si falla
-
 
 # ---------------------------------------------------------------------------
 # Paso 2 – Detección de la carta
@@ -252,7 +234,6 @@ def _correct_perspective(img: np.ndarray, quad: np.ndarray) -> np.ndarray:
     M = cv2.getPerspectiveTransform(quad, dst)
     warped = cv2.warpPerspective(img, M, (CANONICAL_WIDTH, CANONICAL_HEIGHT))
     return warped
-
 
 # ---------------------------------------------------------------------------
 # Paso 4 – Normalización de color e iluminación

@@ -99,12 +99,52 @@ class EvaluacionCartaValidacion:
         data = imagen.file.read()
         img = Image.open(BytesIO(data))
         img.load()
-
-        # Se pasa la imagen a escala de grises y se redimensiona a un misma proporción para que el procesamiento sea más rapido
-        gray = img.convert("L")
-        gray.thumbnail(EvaluacionCartaValidacion.TAMANO_REDIMENSIONADO)
+        
+        # Se pasa la imagen a escala de grises y se redimensiona a un misma proporción
+        gray = EvaluacionCartaValidacion.pasar_a_escala_grises_y_redimensionar(img)
 
         # Se mide la borrosidad
+        blur_score, edges = EvaluacionCartaValidacion.medir_borrosidad(gray)
+
+        # Se mide la iluminación
+        lighting_score = EvaluacionCartaValidacion.medir_iluminacion(gray)
+
+        # Se mide el encuadre (la idea es que los bordes de la carta estén en los bordes de la imagen)
+        framing_score = EvaluacionCartaValidacion.medir_encuadre(gray, edges)
+
+        # se combinan las métricas con sus pesos para obtener un índice de calidad de imagen (IQS)
+        pesos = EvaluacionCartaValidacion.IQS_PESOS
+        iqs = (
+            blur_score * pesos["borrosidad"]
+            + framing_score * pesos["encuadre"]
+            + lighting_score * pesos["iluminacion"]
+        )
+
+        causas = [] # se almacenan las causas de rechazo de la imagen
+
+        if blur_score < EvaluacionCartaValidacion.IQS_MIN_METRICA:
+            causas.append("borroso")
+        if framing_score < EvaluacionCartaValidacion.IQS_MIN_METRICA:
+            causas.append("mal encuadre")
+        if lighting_score < EvaluacionCartaValidacion.IQS_MIN_METRICA:
+            causas.append("mala iluminacion")
+
+        if iqs < EvaluacionCartaValidacion.IQS_UMBRAL_MINIMO:
+            detalle = ", ".join(causas) if causas else "calidad insuficiente"
+            errores["imagen calidad"] = f"Rechazo por {detalle}."
+            agregar_log_evaluacion_carta_fallida(f"Rechazo por calidad insuficiente: {detalle}.", id_usuario)
+            return None
+
+    def pasar_a_escala_grises_y_redimensionar(img: Image.Image) -> Image.Image:
+        """Se pasa la imagen a escala de grises y se redimensiona a un misma proporción para que el procesamiento sea más rapido"""
+        
+        gray = img.convert("L")
+        gray.thumbnail(EvaluacionCartaValidacion.TAMANO_REDIMENSIONADO)
+        return gray
+
+    def medir_borrosidad(gray: Image.Image) -> float:
+        """Se mide la borrosidad de la imagen utilizando un filtro de bordes y calculando el promedio del brillo de los bordes."""
+
         edges = gray.filter(ImageFilter.FIND_EDGES) # aplica un filtro que resalta los bordes, cambios bruscos quedan blanco y zonas uniformes en negro
         edge_mean = ImageStat.Stat(edges).mean[0] # hace un promedio del brillo de esa imagen de bordes
 
@@ -113,8 +153,11 @@ class EvaluacionCartaValidacion:
             EvaluacionCartaValidacion.MAX_PUNTUACION,
             edge_mean / EvaluacionCartaValidacion.DIVISOR_BORDE,
         )
+        return blur_score, edges
+    
+    def medir_iluminacion(gray: Image.Image) -> float:
+        """Se mide la iluminación de la imagen, considerando tanto el brillo como el contraste."""
 
-        # Se mide la iluminación
         stat = ImageStat.Stat(gray)
         brightness = stat.mean[0] # se toma el brillo promedio de la imagen
         contrast = stat.stddev[0] # se toma la disperción de los valores
@@ -128,7 +171,11 @@ class EvaluacionCartaValidacion:
         )
         lighting_score = (brightness_score + contrast_score) / 2.0
 
-        # Se mide el encuadre (la idea es que los bordes de la carta estén en los bordes de la imagen)
+        return lighting_score
+    
+    def medir_encuadre(gray: Image.Image, edges: Image.Image) -> float:
+        """Se mide el encuadre de la imagen, considerando la relación entre el brillo de los bordes exteriores y el brillo del centro de la imagen."""
+        
         w, h = gray.size
         band_x = max(1, int(w * EvaluacionCartaValidacion.RADIO_BANDA_CENTRAL))
         band_y = max(1, int(h * EvaluacionCartaValidacion.RADIO_BANDA_CENTRAL))
@@ -147,25 +194,4 @@ class EvaluacionCartaValidacion:
             * min(EvaluacionCartaValidacion.MAX_PUNTUACION, outer_mean / EvaluacionCartaValidacion.DIVISOR_MEDIA_EXTERIOR)
         )
 
-        # se combinan las métricas con sus pesos para obtener un índice de calidad de imagen (IQS)
-        pesos = EvaluacionCartaValidacion.IQS_PESOS
-        iqs = (
-            blur_score * pesos["borrosidad"]
-            + framing_score * pesos["encuadre"]
-            + lighting_score * pesos["iluminacion"]
-        )
-
-        causas = []
-        if blur_score < EvaluacionCartaValidacion.IQS_MIN_METRICA:
-            causas.append("borroso")
-        if framing_score < EvaluacionCartaValidacion.IQS_MIN_METRICA:
-            causas.append("mal encuadre")
-        if lighting_score < EvaluacionCartaValidacion.IQS_MIN_METRICA:
-            causas.append("mala iluminacion")
-
-        if iqs < EvaluacionCartaValidacion.IQS_UMBRAL_MINIMO:
-            detalle = ", ".join(causas) if causas else "calidad insuficiente"
-            errores["imagen calidad"] = f"Rechazo por {detalle}."
-            agregar_log_evaluacion_carta_fallida(f"Rechazo por calidad insuficiente: {detalle}.", id_usuario)
-            return None
-
+        return framing_score

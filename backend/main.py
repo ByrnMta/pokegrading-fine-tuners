@@ -7,6 +7,7 @@ from Modelos.Usuario import Usuario
 from Modelos.Cartas import Carta
 from Modelos.EvaluacionCarta import EvaluacionCarta
 from Modelos.AuditoriaCarta import AuditoriaCarta
+from Modelos.PreprocesadoCarta import PreprocesadoCarta
 
 # Importación de routers
 from Controladores.Usuario_Controlador import router as usuario_router

@@ -22,4 +22,4 @@ export const SUBMITTER_IMAGE_LABEL = {
     BACK: 'Imagen del reverso (JPEG, PNG, HEIC) *',
 }
 
-export const SUBMITTER_USE_MOCK = false
+export const SUBMITTER_USE_MOCK = true

@@ -4,7 +4,9 @@ import {
 } from '../utils/validators/cards'
 
 import { mockSubmitterCandidates } from '../utils/mocks/submitterCandidates'
+import { mockSubmitWithGradingSuccess, mockSubmitCoherenceFailure, mockSubmitMissingSubgrade, mockSubmitUncorrectableDistortion, mockSubmitNoCardIsolated, } from '../utils/mocks/gradingMocks'
 import { SUBMITTER_USE_MOCK } from '../constants/submitter'
+import { GRADING_DERIVATION_REASON } from '../constants/grading'
 
 const DEFAULT_COMPARE_ERROR =
     'No se pudo comparar la carta. Verifica que el endpoint de comparación esté disponible.'
@@ -388,18 +390,71 @@ export function handleSubmitterMetadataChange({
 }
 
 /**
- * Maneja el envío final de la carta.
+ * Normaliza el resultado de grading devuelto por el backend tras enviar la carta.
  *
- * Actualmente solo envía imagen frontal e imagen reverso.
- * Si SUBMITTER_USE_MOCK está en true, simula el envío aunque exista submitCard.
+ * El endpoint /evaluacion-carta/enviar-evaluacion corre el pipeline completo
+ * (preprocesamiento + calificación) y devuelve el resultado en una sola respuesta.
  *
- * @param {Object} params - Parámetros del handler.
- * @param {React.FormEvent<HTMLFormElement>} params.event - Evento submit.
- * @param {File|null} params.frontFile - Imagen frontal.
- * @param {File|null} params.backFile - Imagen reverso.
- * @param {(formData: FormData) => Promise<Object>} [params.submitCard] - Función del hook Submitter.
- * @param {(errors: Object|Function) => void} params.setErrors - Setter de errores.
- * @param {(loading: boolean) => void} params.setSubmitLoading - Setter de loading.
+ * @param {Object} responseData - Data de la respuesta del backend.
+ * @returns {Object|null} Resultado de grading normalizado, o null si no hay datos.
+ */
+export function normalizeGradingResult(responseData) {
+    if (!responseData) return null
+
+    return {
+        id_evaluacion: responseData.id_evaluacion || responseData.evaluation_id || null,
+        version_algoritmo: responseData.version_algoritmo || responseData.algorithm_version || null,
+        grado_final: Number(responseData.grado_final ?? responseData.final_grade ?? 0),
+        incertidumbre: Number(responseData.incertidumbre ?? responseData.uncertainty ?? 0),
+        subgrades: responseData.subgrades || {},
+        baseline_usado: responseData.baseline_usado || responseData.baseline || null,
+    }
+}
+
+/**
+ * Determina el tipo de derivación a partir de la razón devuelta por el backend.
+ *
+ * @param {Object|null} responseData - Data de la respuesta de error.
+ * @returns {'recapture'|'manual_review'|null}
+ */
+function resolveDerivationType(responseData) {
+    const reason = responseData?.razon || responseData?.reason || null
+
+    if (reason === GRADING_DERIVATION_REASON.UNCORRECTABLE_DISTORTION) {
+        return 'recapture'
+    }
+
+    if (
+        reason === GRADING_DERIVATION_REASON.NO_CARD_ISOLATED ||
+        reason === GRADING_DERIVATION_REASON.MISSING_SUBGRADE ||
+        reason === GRADING_DERIVATION_REASON.COHERENCE_FAILURE
+    ) {
+        return 'manual_review'
+    }
+
+    return null
+}
+
+/**
+ * Maneja el envío de la carta para evaluación automática.
+ *
+ * El backend corre el pipeline completo (preprocesamiento + calificación)
+ * en una sola llamada. El frontend no necesita confirmar pasos intermedios.
+ *
+ * Flujo exitoso   → setGradingResult con los datos de calificación.
+ * Deriva manual   → setGradingDerivation con tipo 'manual_review' y mensaje.
+ * Pide recaptura  → setGradingDerivation con tipo 'recapture' y mensaje.
+ * Error genérico  → setErrors con clave 'submit'.
+ *
+ * @param {Object} params
+ * @param {React.FormEvent<HTMLFormElement>} params.event
+ * @param {File|null} params.frontFile
+ * @param {File|null} params.backFile
+ * @param {(formData: FormData) => Promise<Object>} [params.submitCard]
+ * @param {(errors: Object|Function) => void} params.setErrors
+ * @param {(loading: boolean) => void} params.setSubmitLoading
+ * @param {(result: Object|null) => void} params.setGradingResult
+ * @param {({type: string, message: string}|null) => void} params.setGradingDerivation
  * @returns {Promise<void>}
  */
 export async function handleSubmitterSubmit({
@@ -409,9 +464,13 @@ export async function handleSubmitterSubmit({
     submitCard,
     setErrors,
     setSubmitLoading,
+    setGradingResult,
+    setGradingDerivation,
 }) {
     event.preventDefault()
     setErrors({})
+    setGradingResult(null)
+    setGradingDerivation(null)
 
     const imageErrors = validateSubmitterImages(frontFile, backFile)
 
@@ -423,46 +482,40 @@ export async function handleSubmitterSubmit({
     setSubmitLoading(true)
 
     try {
-        const fd = buildSubmitterCreateFormData({
-            frontFile,
-            backFile,
-        })
+        const fd = buildSubmitterCreateFormData({ frontFile, backFile })
+
+        let response
 
         if (SUBMITTER_USE_MOCK || !submitCard) {
-            console.log('Envío Submitter usando mock:', {
-                fd,
-                frontFile,
-                backFile,
-            })
-
-            await new Promise((resolve) => setTimeout(resolve, 400))
-
-            setErrors({
-                success: 'Carta lista para enviar. Prueba frontend completada.',
-            })
-
-            return
+            console.log('Envío Submitter usando mock:', { frontFile, backFile })
+            await new Promise((resolve) => setTimeout(resolve, 1400))
+            response = mockSubmitCoherenceFailure
+        } else {
+            response = await submitCard(fd)
         }
-
-        const response = await submitCard(fd)
 
         if (!response?.ok) {
+            const derivationType = resolveDerivationType(response?.data)
+
+            if (derivationType) {
+                setGradingDerivation({
+                    type: derivationType,
+                    message: normalizeSubmitterErrorMessage(response?.message, null),
+                })
+                return
+            }
+
             setErrors({
-                submit:
-                    normalizeSubmitterErrorMessage(
-                        response?.message,
-                        DEFAULT_SUBMIT_ERROR
-                    ),
+                submit: normalizeSubmitterErrorMessage(response?.message, DEFAULT_SUBMIT_ERROR),
             })
             return
         }
 
+        const result = normalizeGradingResult(response.data)
+        setGradingResult(result)
+    } catch {
         setErrors({
-            success: 'Carta enviada correctamente.',
-        })
-    } catch (err) {
-        setErrors({
-            submit: 'Ocurrio un error inesperado al enviar la carta.',
+            submit: 'Ocurrió un error inesperado al enviar la carta.',
         })
     } finally {
         setSubmitLoading(false)

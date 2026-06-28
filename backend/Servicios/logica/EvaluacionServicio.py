@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import UploadFile
 from Esquemas.EvaluacionCartaEsquema import EvaluacionCartaCreate
@@ -7,15 +8,38 @@ from Servicios.utilidades.EvaluacionCartaUtilidad import guardar_imagen_evaluaci
 from AccesoDatos.EvaluacionCartaRepositorio import EvaluacionCartaRepositorio
 from Servicios.utilidades.PreprocesarCartaUtilidad import analizar_carta
 from AccesoDatos.PreprocesadoCartaRepositorio import PreprocesadoCartaRepositorio
+from Servicios.utilidades.CalificarCartaUtilidad import CalificarCartaUtilidad
+from AccesoDatos.ResultadoCalificacionRepositorio import ResultadoCalificacionRepositorio
 
 
 class EvaluacionCartaServicio:
 
-    def registro_evaluacion_carta(db: Session, id_usuario: int, toma_frontal: UploadFile, toma_reversa:UploadFile):
+    def registro_evaluacion_carta(
+        db: Session,
+        id_usuario: int,
+        id_sesion: str,
+        toma_frontal: UploadFile,
+        toma_reversa: UploadFile,
+        set_name: Optional[str] = None,
+        acabado: Optional[str] = None,
+    ):
         """Servicio para registrar la evaluación de la carta, que valida los datos recibidos."""
 
         errores = {}
         try:
+            # ── Idempotencia temprana: si esta sesion ya se proceso,
+            #    se devuelve el resultado existente sin crear nada nuevo.
+            repositorio_cal = ResultadoCalificacionRepositorio()
+            resultado_existente = repositorio_cal.obtener_por_sesion(db, id_sesion)
+            if resultado_existente is not None:
+                return {
+                    "mensaje": "Esta sesion ya fue procesada.",
+                    "evaluacion": {"id": resultado_existente.id_evaluacionCarta,
+                                   "estado": resultado_existente.tipo_revision},
+                    "calificacion": CalificarCartaUtilidad._mapear_resultado_existente(
+                        resultado_existente).get("calificacion"),
+                }
+
             # Validación de la toma frontal 
             EvaluacionCartaValidacion.validar_tamaño_imagen(db, toma_frontal, id_usuario, errores)
             EvaluacionCartaValidacion.validar_formato_imagen(db, toma_frontal, id_usuario, errores)
@@ -92,10 +116,56 @@ class EvaluacionCartaServicio:
             )
 
 
-            ######## AQUÍ SE TENDRÁ QUE LLAMAR AL SERVICIO DE CALIFICACION DE CARTA Y DAR RESPUESTA (se hace en otro archivo dentro de Servicios/logica) #################
-            
+            # ── Calificación de carta ────────────────────────────────────────
+            resultado_calificacion = CalificarCartaUtilidad.calificar(
+                db=db,
+                id_evaluacionCarta=evaluacion.id,
+                id_sesion=id_sesion,
+                scores_frontal={
+                    "centering": centering_frontal,
+                    "corners": corners_frontal,
+                    "edges": edges_frontal,
+                    "surface": surface_frontal,
+                },
+                scores_reversa={
+                    "centering": centering_reversa,
+                    "corners": corners_reversa,
+                    "edges": edges_reversa,
+                    "surface": surface_reversa,
+                },
+                evaluacion=evaluacion,
+                set_name=set_name,
+                acabado=acabado,
+            )
 
-            return {"mensaje": "Evaluación de carta registrada exitosamente"}
+            return {
+                "mensaje": resultado_calificacion.get("mensaje", "Evaluación de carta registrada exitosamente"),
+                "evaluacion": {
+                    "id": evaluacion.id,
+                    "estado": evaluacion.estado,
+                    "tipo_revision": resultado_calificacion.get("tipo_revision"),
+                    "requiere_accion": resultado_calificacion.get("requiere_accion", False),
+                },
+                "preprocesamiento": {
+                    "frontal": {
+                        "centering": centering_frontal,
+                        "corners": corners_frontal,
+                        "edges": edges_frontal,
+                        "surface": surface_frontal,
+                        "tipo_revision": tipo_revision_frontal,
+                        "tipo_imagen": "FRONTAL",
+                    },
+                    "reversa": {
+                        "centering": centering_reversa,
+                        "corners": corners_reversa,
+                        "edges": edges_reversa,
+                        "surface": surface_reversa,
+                        "tipo_revision": tipo_revision_reversa,
+                        "tipo_imagen": "REVERSA",
+                    },
+                },
+                "calificacion": resultado_calificacion.get("calificacion"),
+            }
         except Exception as e:
             db.rollback()
             return {"errores": {"internal": f"Error interno: {str(e)}"}}

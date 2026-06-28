@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body, Form
+from fastapi import APIRouter, Depends, HTTPException, Body, Form, Header
 from Datos.db_session import get_db
 from sqlalchemy.orm import Session
 from Esquemas.CartasEsquema import CartaConsultaB2B
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/B2B", tags=["b2b"])
 # ----------------------------------------------------------------------
 @router.post("/consulta-catalogo-b2b", status_code=200)
 def buscar_cartas_catalogo_b2b(
-        API_key: str = Body(...),
+        API_key: str = Header(..., description="API key de la tienda B2B"),
         tienda_id: str = Body(...),
         lista_cartas_consultar: list[dict] = Body(...),
         db: Session = Depends(get_db)

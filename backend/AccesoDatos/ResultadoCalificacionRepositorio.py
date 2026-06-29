@@ -30,6 +30,21 @@ class ResultadoCalificacionRepositorio:
         )
 
     @staticmethod
+    def obtener_por_sesion_y_huella(
+        db: Session, id_sesion: str, huella: str
+    ) -> Optional[ResultadoCalificacionCarta]:
+        """Idempotencia: devuelve el resultado existente si ya se procesó
+        esta (sesión, huella) — misma sesión Y mismas imágenes."""
+        return (
+            db.query(ResultadoCalificacionCarta)
+            .filter(
+                ResultadoCalificacionCarta.id_sesion == id_sesion,
+                ResultadoCalificacionCarta.huella_imagenes == huella,
+            )
+            .first()
+        )
+
+    @staticmethod
     def obtener_por_evaluacion_y_sesion(
         db: Session, id_evaluacionCarta: int, id_sesion: str
     ) -> Optional[ResultadoCalificacionCarta]:

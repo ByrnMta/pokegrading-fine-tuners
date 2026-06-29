@@ -28,22 +28,10 @@ class EvaluacionCartaServicio:
 
         errores = {}
         try:
-            # ── Idempotencia temprana: si esta sesion ya se proceso,
-            #    se devuelve el resultado existente sin crear nada nuevo.
+            # ── Idempotencia combinada: misma sesión Y mismas imágenes.
+            #    Se calcula la huella y se busca un registro que coincida
+            #    simultáneamente con ambos criterios.
             repositorio_cal = ResultadoCalificacionRepositorio()
-            resultado_existente = repositorio_cal.obtener_por_sesion(db, id_sesion)
-            if resultado_existente is not None:
-                return {
-                    "mensaje": "Esta sesion ya fue procesada.",
-                    "evaluacion": {"id": resultado_existente.id_evaluacionCarta,
-                                   "estado": resultado_existente.tipo_revision},
-                    "calificacion": CalificarCartaUtilidad._mapear_resultado_existente(
-                        resultado_existente).get("calificacion"),
-                }
-
-# ── Idempotencia por huella de imagen: si estas mismas imagenes ya
-            #    fueron procesadas (aunque sea con otro id_sesion), se retorna
-            #    el resultado existente.
             toma_frontal.file.seek(0)
             frontal_bytes = toma_frontal.file.read()
             toma_reversa.file.seek(0)
@@ -53,14 +41,16 @@ class EvaluacionCartaServicio:
             toma_frontal.file.seek(0)
             toma_reversa.file.seek(0)
 
-            resultado_por_huella = repositorio_cal.obtener_por_huella(db, huella_imagenes)
-            if resultado_por_huella is not None:
+            resultado_existente = repositorio_cal.obtener_por_sesion_y_huella(
+                db, id_sesion, huella_imagenes
+            )
+            if resultado_existente is not None:
                 return {
-                    "mensaje": "Estas imagenes ya fueron evaluadas anteriormente.",
-                    "evaluacion": {"id": resultado_por_huella.id_evaluacionCarta,
-                                   "estado": resultado_por_huella.tipo_revision},
+                    "mensaje": "Esta sesion con estas imagenes ya fue procesada.",
+                    "evaluacion": {"id": resultado_existente.id_evaluacionCarta,
+                                   "estado": resultado_existente.tipo_revision},
                     "calificacion": CalificarCartaUtilidad._mapear_resultado_existente(
-                        resultado_por_huella).get("calificacion"),
+                        resultado_existente).get("calificacion"),
                 }
             # Validación de la toma frontal 
             EvaluacionCartaValidacion.validar_tamaño_imagen(db, toma_frontal, id_usuario, errores)

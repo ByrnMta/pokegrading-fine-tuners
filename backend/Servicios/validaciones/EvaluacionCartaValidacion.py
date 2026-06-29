@@ -34,7 +34,8 @@ class EvaluacionCartaValidacion:
 
         # Se valida que el tamaño máximo de la imagen sea 10 MB
         if imagen.size > EvaluacionCartaValidacion.TAMANO_MAXIMO_IMAGEN:
-            errores['imagen tamaño'] = "El tamaño de la imagen no debe exceder los 10MB."
+            errores["imagen tamaño"] = "El tamaño de la imagen no debe exceder los 10MB."
+            errores["status_code"] = 422
             agregar_log_evaluacion_carta_fallida("El tamaño de la imagen excede el límite permitido.", id_usuario)
             return None
 
@@ -44,7 +45,8 @@ class EvaluacionCartaValidacion:
         # Se valida que el formato de la imagen sea JPEG, PNG o HEIC
         extension = imagen.filename.split(".")[-1].lower() if "." in imagen.filename else ""
         if extension not in EvaluacionCartaValidacion.EXTENSIONES_PERMITIDAS:
-            errores['imagen formato'] = "El formato de la imagen debe ser JPEG, PNG o HEIC."
+            errores["imagen formato"] = "El formato de la imagen debe ser JPEG, PNG o HEIC."
+            errores["status_code"] = 422
             agregar_log_evaluacion_carta_fallida("El formato de la imagen no es válido.", id_usuario)
             return None
 
@@ -57,12 +59,14 @@ class EvaluacionCartaValidacion:
             data = imagen.file.read()
         except Exception:
             errores["imagen contenido"] = "No se pudo leer la imagen."
+            errores["status_code"] = 422
             agregar_log_evaluacion_carta_fallida("No se pudo leer la imagen para validación de contenido.", id_usuario)
             return None
                 
         # Se valida que el archivo no esté vacío
         if not data:
             errores["imagen contenido"] = "La imagen está vacía."
+            errores["status_code"] = 422
             agregar_log_evaluacion_carta_fallida("La imagen está vacía.", id_usuario)
             return None
 
@@ -71,6 +75,7 @@ class EvaluacionCartaValidacion:
             Image.open(BytesIO(data)).verify()
         except (UnidentifiedImageError, OSError, ValueError):
             errores["imagen contenido"] = "El archivo no es una imagen valida (corrupto)."
+            errores["status_code"] = 422
             agregar_log_evaluacion_carta_fallida("El archivo no es una imagen válida (corrupto).", id_usuario)
             return None
 
@@ -83,10 +88,13 @@ class EvaluacionCartaValidacion:
                 trailing = img.fp.read()
                 if trailing not in (b"", None):
                     errores["imagen contenido"] = "La imagen contiene datos extra."
+                    errores["status_code"] = 422
                     agregar_log_evaluacion_carta_fallida("La imagen contiene datos extra luego del fin de la imagen.", id_usuario)
                     return None
+                
         except (UnidentifiedImageError, OSError, ValueError):
             errores["imagen contenido"] = "El archivo no es una imagen valida."
+            errores["status_code"] = 422
             agregar_log_evaluacion_carta_fallida("El archivo no es una imagen válida.", id_usuario)
             return None
         
@@ -132,6 +140,7 @@ class EvaluacionCartaValidacion:
         if iqs < EvaluacionCartaValidacion.IQS_UMBRAL_MINIMO:
             detalle = ", ".join(causas) if causas else "calidad insuficiente"
             errores["imagen calidad"] = f"Rechazo por {detalle}."
+            errores["status_code"] = 422
             agregar_log_evaluacion_carta_fallida(f"Rechazo por calidad insuficiente: {detalle}.", id_usuario)
             return None
 

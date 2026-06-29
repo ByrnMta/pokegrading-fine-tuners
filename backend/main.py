@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from Datos.db import Base, engine
@@ -21,8 +23,27 @@ from Datos.db_session import get_db
 
 # Inicialización de FastAPI
 app = FastAPI(title="Pokegrading", description="API para autenticación y gestión de propiedades")
-# Configuración de CORS
 
+# Configuración de exception handlers
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=400,
+        content={
+            "mensaje": "El input recibido es inválido.",
+            "endpoint": str(request.url),  # dice qué endpoint falló
+            "metodo": request.method,      # Y qué método (POST, GET, etc)
+            "errores": [
+                {
+                    "campo": ".".join(str(loc) for loc in error["loc"]),
+                    "error": error["msg"]
+                }
+                for error in exc.errors()
+            ]
+        }
+    )
+
+# Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,7 +51,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.on_event("startup")
 def create_tables() -> None:

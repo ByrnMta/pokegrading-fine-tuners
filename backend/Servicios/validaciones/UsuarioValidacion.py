@@ -12,12 +12,14 @@ class UsuarioValidacion:
 
         # se valida que el correo no esté vacío
         if not correo:
-            errores['correo'] = "El correo es obligatorio."
+            errores["correo"] = "El correo es obligatorio."
+            errores["status_code"] = 422
             return None
 
-        # Se valida que el correo no esté ya registrado en la base de datos
+        # Se valida que el correo no esté registrado en la base de datos
         if UsuarioRepositorio.obtener_usuario_por_correo(db, correo):
-            errores['correo existente'] = "El correo ya está registrado."
+            errores["correo existente"] = "El correo ya está registrado."
+            errores["status_code"] = 422
             return None
     
     @staticmethod
@@ -25,12 +27,14 @@ class UsuarioValidacion:
         """Valida que el formato del correo sea válido"""
 
         if not correo:
-            errores['correo'] = "El correo es obligatorio."
+            errores["correo"] = "El correo es obligatorio."
+            errores["status_code"] = 422
             return None
         
         # Se comprueba si el formato del correo es válido (al menos una @)
         if correo.count("@") != 1:
-            errores['correo formato'] = "El formato del correo no es válido."
+            errores["correo formato"] = "El formato del correo no es válido."
+            errores["status_code"] = 422
             return None
                 
     @staticmethod
@@ -38,23 +42,27 @@ class UsuarioValidacion:
         """Valida que el dominio del correo no esté bloqueado"""
         
         if not correo:
-            errores['correo'] = "El correo es obligatorio."
+            errores["correo"] = "El correo es obligatorio."
+            errores["status_code"] = 422
             return None
 
         # Se valida primero si el formato del correo es válido para poder extraer el dominio
         if "@" not in correo:
-            errores['correo formato'] = "El formato del correo no es válido."
+            errores["correo formato"] = "El formato del correo no es válido."
+            errores["status_code"] = 422
             return None
         
         # Se extrae el dominio del correo para validar si es permitido
         _, dominio = correo.split("@")
         
         if not dominio:
-            errores['correo formato'] = "El formato del correo no es válido."
+            errores["correo formato"] = "El formato del correo no es válido."
+            errores["status_code"] = 422
             return None
         
         if CorreosBloqueadosRepositorio.buscar_dominio_bloqueado(db, dominio):
-            errores['correo dominio'] = "El dominio del correo no es válido."
+            errores["correo dominio"] = "El dominio del correo no es válido."
+            errores["status_code"] = 422
             return None
     
     @staticmethod
@@ -63,23 +71,28 @@ class UsuarioValidacion:
         al menos una letra mayúscula, una letra minúscula y digito"""
 
         if not contrasena:
-            errores['contraseña'] = "La contraseña es obligatoria."
+            errores["contraseña"] = "La contraseña es obligatoria."
+            errores["status_code"] = 422
             return None
         
         if len(contrasena) < 8:
-            errores['contraseña longitud'] = "La contraseña debe tener al menos 8 caracteres."
+            errores["contraseña longitud"] = "La contraseña debe tener al menos 8 caracteres."
+            errores["status_code"] = 422
             return None
         
         if not any(c.isupper() for c in contrasena):
-            errores['contraseña mayúscula'] = "La contraseña debe contener al menos una letra mayúscula."
+            errores["contraseña mayúscula"] = "La contraseña debe contener al menos una letra mayúscula."
+            errores["status_code"] = 422
             return None
         
         if not any(c.islower() for c in contrasena):
-            errores['contraseña minúscula'] = "La contraseña debe contener al menos una letra minúscula."
+            errores["contraseña minúscula"] = "La contraseña debe contener al menos una letra minúscula."
+            errores["status_code"] = 422
             return None
         
         if not any(c.isdigit() for c in contrasena):
-            errores['contraseña dígito'] = "La contraseña debe contener al menos un dígito."
+            errores["contraseña dígito"] = "La contraseña debe contener al menos un dígito."
+            errores["status_code"] = 422
             return None
     
     @staticmethod
@@ -87,11 +100,13 @@ class UsuarioValidacion:
         """Valida que el país seleccionado sea un país válido en la base de datos"""
 
         if not pais:
-            errores['pais'] = "El país es obligatorio."
+            errores["pais"] = "El país es obligatorio."
+            errores["status_code"] = 422
             return None
         
         if not PaisRepositorio.buscar_pais_por_nombre(db, pais):
-            errores['pais inválido'] = "El país seleccionado no es válido."
+            errores["pais inválido"] = "El país seleccionado no es válido."
+            errores["status_code"] = 422
             return None
         
     @staticmethod
@@ -99,10 +114,12 @@ class UsuarioValidacion:
         """Valida si el idioma seleccionado sea un idioma válido en la base de datos"""
 
         if not idioma:
-            errores['idioma'] = "El idioma es obligatorio."
+            errores["idioma"] = "El idioma es obligatorio."
+            errores["status_code"] = 422
             return None
 
         if not IdiomaRepositorio.buscar_idioma_por_nombre(db, idioma):
-            errores['idioma inválido'] = "El idioma seleccionado no es válido."
+            errores["idioma inválido"] = "El idioma seleccionado no es válido."
+            errores["status_code"] = 422
             return None
         

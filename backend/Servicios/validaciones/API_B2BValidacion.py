@@ -27,6 +27,7 @@ class API_B2BValidacion:
                 return tienda
 
         errores["API_key"] = "API key inválido. No se encontró ninguna tienda asociada a este API key."
+        errores["status_code"] = 401
         return None
 
     def validar_respuesta_cacheada(db: Session, tienda_id: str):
@@ -51,9 +52,23 @@ class API_B2BValidacion:
         """Valida que la lista de cartas recibida tenga el formato correcto."""
 
         if not lista_cartas:
-            errores['lista_cartas'] = "No hay cartas proporcionadas."
+            errores["lista_cartas"] = "No hay cartas proporcionadas."
+            errores["status_code"] = 404 # input inválido
+            return None
+        
+        # Si solo se consulta por una sola carta, si dicha carta no se encuentra o no está activa, se regresa un error
+        if len(lista_cartas) == 1:
+            respuesta_carta = API_B2BValidacion.validar_atributos_carta(db, lista_cartas[0], respuesta, errores)
+
+            if respuesta_carta.get("estado") == "parámetros inválidos" or respuesta_carta.get("estado") == "no cubierta":
+                errores["carta"] = "No se encontró la carta solicitada."
+                errores["status_code"] = 404 # carta no encontrada
+                return None
+
+            respuesta.append(respuesta_carta) # Se agrega la respuesta de la carta a la lista de respuestas
             return None
 
+        # Si se consulta por varias cartas
         # Se valida que las cartas tengan los atributos necesarios
         for carta in lista_cartas:
             respuesta_carta = API_B2BValidacion.validar_atributos_carta(db, carta, respuesta, errores)

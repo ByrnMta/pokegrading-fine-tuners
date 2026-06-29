@@ -1,4 +1,5 @@
 from typing import Optional
+import hashlib
 from sqlalchemy.orm import Session
 from fastapi import UploadFile
 from Esquemas.EvaluacionCartaEsquema import EvaluacionCartaCreate
@@ -40,6 +41,27 @@ class EvaluacionCartaServicio:
                         resultado_existente).get("calificacion"),
                 }
 
+# ── Idempotencia por huella de imagen: si estas mismas imagenes ya
+            #    fueron procesadas (aunque sea con otro id_sesion), se retorna
+            #    el resultado existente.
+            toma_frontal.file.seek(0)
+            frontal_bytes = toma_frontal.file.read()
+            toma_reversa.file.seek(0)
+            reversa_bytes = toma_reversa.file.read()
+            huella_imagenes = hashlib.sha256(frontal_bytes + reversa_bytes).hexdigest()
+            # Resetear los punteros para que el resto del flujo pueda leer las imagenes
+            toma_frontal.file.seek(0)
+            toma_reversa.file.seek(0)
+
+            resultado_por_huella = repositorio_cal.obtener_por_huella(db, huella_imagenes)
+            if resultado_por_huella is not None:
+                return {
+                    "mensaje": "Estas imagenes ya fueron evaluadas anteriormente.",
+                    "evaluacion": {"id": resultado_por_huella.id_evaluacionCarta,
+                                   "estado": resultado_por_huella.tipo_revision},
+                    "calificacion": CalificarCartaUtilidad._mapear_resultado_existente(
+                        resultado_por_huella).get("calificacion"),
+                }
             # Validación de la toma frontal 
             EvaluacionCartaValidacion.validar_tamaño_imagen(db, toma_frontal, id_usuario, errores)
             EvaluacionCartaValidacion.validar_formato_imagen(db, toma_frontal, id_usuario, errores)
@@ -136,6 +158,7 @@ class EvaluacionCartaServicio:
                 evaluacion=evaluacion,
                 set_name=set_name,
                 acabado=acabado,
+                huella_imagenes=huella_imagenes,
             )
 
             return {

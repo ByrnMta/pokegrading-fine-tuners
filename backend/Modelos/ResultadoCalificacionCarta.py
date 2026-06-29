@@ -12,6 +12,7 @@ class ResultadoCalificacionCarta(Base):
         Integer, ForeignKey("evaluacion_carta.id"), nullable=False
     )
     id_sesion = Column(String(100), nullable=False)
+    huella_imagenes = Column(String(64), nullable=True, index=True)  # SHA-256 hex digest de (frontal + reversa)
     version_algoritmo = Column(String(20), nullable=False)
     centering_subgrade = Column(Float, nullable=True)
     corners_subgrade = Column(Float, nullable=True)

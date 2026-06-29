@@ -10,6 +10,8 @@ class EvaluacionCarta(Base):
     id_usuario = Column(Integer, ForeignKey("usuario.id"), nullable=False)
     toma_frontal_path = Column(String, nullable=True)
     toma_reversa_path = Column(String, nullable=True)
+    estado = Column(String(20), nullable=False, default="PENDIENTE")  # PENDIENTE | COMPLETADA | MANUAL | REVIEW
+
     fecha_evaluacion = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relación con preprocesado de carta

@@ -10,6 +10,8 @@ from Modelos.Cartas import Carta
 from Modelos.EvaluacionCarta import EvaluacionCarta
 from Modelos.AuditoriaCarta import AuditoriaCarta
 from Modelos.PreprocesadoCarta import PreprocesadoCarta
+from Modelos.ResultadoCalificacionCarta import ResultadoCalificacionCarta
+from Modelos.BaselineCalibracion import BaselineCalibracion
 
 # Importación de routers
 from Controladores.Usuario_Controlador import router as usuario_router

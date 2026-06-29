@@ -1,75 +1,117 @@
 /**
- * Mock de respuesta exitosa de POST /evaluacion-carta/enviar-evaluacion.
- *
- * El backend corre el pipeline completo (preprocesamiento + grading)
- * y devuelve el resultado final en una sola respuesta.
+ * Mock - Escenario 1: AUTO
+ * Todo funciona, calificación completada automáticamente.
  */
 export const mockSubmitWithGradingSuccess = {
     ok: true,
     data: {
-        id_evaluacion: 'eval-mock-xyz789',
-        version_algoritmo: 'pokegrading-v1.2.3',
-        grado_final: 8.5,
-        incertidumbre: 0.3,
-        subgrades: {
-            centering: 9.0,
-            corners: 8.5,
-            edges: 8.0,
-            surface: 8.5,
+        mensaje: 'Evaluacion de carta registrada exitosamente.',
+        evaluacion: {
+            id: 42,
+            estado: 'COMPLETADA',
+            tipo_revision: 'AUTO',
+            requiere_accion: false,
         },
-        baseline_usado: {
-            tipo: 'calibrado',
-            set_name: 'Base Set',
-            acabado: 'Holo',
+        calificacion: {
+            version_algoritmo: '1.0.0',
+            centering_subgrade: 8.3,
+            corners_subgrade: 7.2,
+            edges_subgrade: 8.8,
+            surface_subgrade: 8.6,
+            grado_final: 7.7,
+            uncertainty_band: 0.3,
+            baseline_origen: 'SET_ACABADO',
+            tipo_revision: 'AUTO',
+            coherence_flag: 'OK',
         },
     },
 }
 
 /**
- * Mock cuando no se puede aislar la carta del fondo (deriva a calificación manual).
+ * Mock - Escenario 2: REVIEW
+ * Calificación completada pero con incoherencia interna → revisión humana.
  */
-export const mockSubmitNoCardIsolated = {
-    ok: false,
-    status: 422,
-    message: 'No se pudo aislar la carta del fondo. Será derivada a calificación manual.',
+export const mockSubmitReview = {
+    ok: true,
     data: {
-        razon: 'no_card_isolated',
+        mensaje: 'La calificacion se completo, pero los resultados presentan incoherencias internas y han sido derivados a revision humana. Te notificaremos la resolucion.',
+        evaluacion: {
+            id: 42,
+            estado: 'REVIEW',
+            tipo_revision: 'REVIEW',
+            requiere_accion: true,
+        },
+        calificacion: {
+            version_algoritmo: '1.0.0',
+            centering_subgrade: 9.3,
+            corners_subgrade: 9.5,
+            edges_subgrade: 4.8,
+            surface_subgrade: 9.2,
+            grado_final: 5.3,
+            uncertainty_band: 0.3,
+            baseline_origen: 'GLOBAL',
+            tipo_revision: 'REVIEW',
+            coherence_flag: 'REVIEW',
+        },
     },
 }
 
 /**
- * Mock cuando la imagen tiene distorsiones irrecuperables (pide recaptura).
+ * Mock — Escenario 3: MANUAL ✋
+ * No se pudo calcular alguna dimensión → derivación a calificación manual.
+ * calificacion es null.
  */
-export const mockSubmitUncorrectableDistortion = {
-    ok: false,
-    status: 422,
-    message: 'La imagen tiene distorsiones que no pueden corregirse. Por favor, recaptura la carta.',
+export const mockSubmitManual = {
+    ok: true,
     data: {
-        razon: 'uncorrectable_distortion',
+        mensaje: 'No fue posible calcular algunos subgrades de forma automatica. La carta ha sido derivada a calificacion manual. Te notificaremos cuando este lista.',
+        evaluacion: {
+            id: 42,
+            estado: 'MANUAL',
+            tipo_revision: 'MANUAL',
+            requiere_accion: true,
+        },
+        calificacion: null,
     },
 }
 
 /**
- * Mock cuando falta un subgrade (deriva a revisión humana).
+ * Mock — Escenario 4: IDEMPOTENCIA ♻️
+ * Mismo id_sesion ya procesado; retorna el resultado anterior.
  */
-export const mockSubmitMissingSubgrade = {
-    ok: false,
-    status: 422,
-    message: 'No se pudo calcular el subgrade de surface con insumos suficientes.',
+export const mockSubmitIdempotent = {
+    ok: true,
     data: {
-        razon: 'missing_subgrade',
-        subgrade_faltante: 'surface',
+        mensaje: 'Esta sesion ya fue procesada.',
+        evaluacion: {
+            id: 42,
+            estado: 'COMPLETADA',
+        },
+        calificacion: {
+            version_algoritmo: '1.0.0',
+            centering_subgrade: 8.3,
+            corners_subgrade: 7.2,
+            edges_subgrade: 8.8,
+            surface_subgrade: 8.6,
+            grado_final: 7.7,
+            uncertainty_band: 0.3,
+            baseline_origen: 'SET_ACABADO',
+            tipo_revision: 'AUTO',
+            coherence_flag: 'OK',
+        },
     },
 }
 
 /**
- * Mock cuando hay incoherencia interna en los subgrades (deriva a revisión humana).
+ * Mock - Escenario 5: ERROR
+ * Validaciones previas fallaron (ej. imagen demasiado grande).
  */
-export const mockSubmitCoherenceFailure = {
+export const mockSubmitError = {
     ok: false,
     status: 422,
-    message: 'El resultado contradice los umbrales mínimos de coherencia interna.',
     data: {
-        razon: 'coherence_failure',
+        errores: {
+            'imagen tamaño': 'El tamaño de la imagen no debe exceder los 10MB.',
+        },
     },
 }

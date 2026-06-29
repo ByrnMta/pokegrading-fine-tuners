@@ -4,7 +4,7 @@ import {
 } from '../utils/validators/cards'
 
 import { mockSubmitterCandidates } from '../utils/mocks/submitterCandidates'
-import { mockSubmitWithGradingSuccess, mockSubmitCoherenceFailure, mockSubmitMissingSubgrade, mockSubmitUncorrectableDistortion, mockSubmitNoCardIsolated, } from '../utils/mocks/gradingMocks'
+import { mockSubmitWithGradingSuccess } from '../utils/mocks/gradingMocks'
 import { SUBMITTER_USE_MOCK } from '../constants/submitter'
 import { GRADING_DERIVATION_REASON } from '../constants/grading'
 
@@ -140,21 +140,28 @@ export function buildSubmitterCompareFormData({
 /**
  * Construye el FormData para crear/enviar una carta desde Submitter.
  *
- * Actualmente solo envía imágenes para que el backend procese la carta.
- *
  * @param {Object} params - Parámetros.
  * @param {File} params.frontFile - Imagen frontal.
  * @param {File} params.backFile - Imagen reverso.
+ * @param {string} params.sessionId - Token de sesión generado al iniciar como submitter.
+ * @param {string} params.setName - Nombre del set seleccionado.
+ * @param {string} params.acabado - Acabado seleccionado.
  * @returns {FormData}
  */
 export function buildSubmitterCreateFormData({
     frontFile,
     backFile,
+    sessionId,
+    setName,
+    acabado,
 }) {
     const fd = new FormData()
-    fd.append('id_usuario', 1) // Valor fijo para pruebas, se puede modificar para usar un ID dinámico si se implementa autenticación
+    fd.append('id_usuario', 1) // Valor fijo para pruebas; reemplazar con ID dinámico cuando se implemente autenticación
+    fd.append('id_sesion', sessionId)
     fd.append('toma_frontal', frontFile)
     fd.append('toma_reversa', backFile)
+    fd.append('set_name', setName)
+    fd.append('acabado', acabado)
 
     return fd
 }
@@ -392,8 +399,8 @@ export function handleSubmitterMetadataChange({
 /**
  * Normaliza el resultado de grading devuelto por el backend tras enviar la carta.
  *
- * El endpoint /evaluacion-carta/enviar-evaluacion corre el pipeline completo
- * (preprocesamiento + calificación) y devuelve el resultado en una sola respuesta.
+ * Mapea la respuesta real del backend al shape interno que usan
+ * GradingResult y SubgradeBar.
  *
  * @param {Object} responseData - Data de la respuesta del backend.
  * @returns {Object|null} Resultado de grading normalizado, o null si no hay datos.
@@ -401,13 +408,25 @@ export function handleSubmitterMetadataChange({
 export function normalizeGradingResult(responseData) {
     if (!responseData) return null
 
+    const cal = responseData.calificacion || {}
+    const ev  = responseData.evaluacion   || {}
+
     return {
-        id_evaluacion: responseData.id_evaluacion || responseData.evaluation_id || null,
-        version_algoritmo: responseData.version_algoritmo || responseData.algorithm_version || null,
-        grado_final: Number(responseData.grado_final ?? responseData.final_grade ?? 0),
-        incertidumbre: Number(responseData.incertidumbre ?? responseData.uncertainty ?? 0),
-        subgrades: responseData.subgrades || {},
-        baseline_usado: responseData.baseline_usado || responseData.baseline || null,
+        mensaje:           responseData.mensaje    || null,
+        id_evaluacion:     ev.id                   || null,
+        estado:            ev.estado               || null,
+        tipo_revision:     ev.tipo_revision        || null,
+        version_algoritmo: cal.version_algoritmo   || null,
+        grado_final:       Number(cal.grado_final      ?? 0),
+        incertidumbre:     Number(cal.uncertainty_band ?? 0),
+        coherence_flag:    cal.coherence_flag      || null,
+        baseline_origen:   cal.baseline_origen     || null,
+        subgrades: {
+            centering: Number(cal.centering_subgrade ?? 0),
+            corners:   Number(cal.corners_subgrade   ?? 0),
+            edges:     Number(cal.edges_subgrade     ?? 0),
+            surface:   Number(cal.surface_subgrade   ?? 0),
+        },
     }
 }
 
@@ -450,6 +469,9 @@ function resolveDerivationType(responseData) {
  * @param {React.FormEvent<HTMLFormElement>} params.event
  * @param {File|null} params.frontFile
  * @param {File|null} params.backFile
+ * @param {string} params.sessionId - Token de sesión del submitter.
+ * @param {string} params.setName - Set seleccionado.
+ * @param {string} params.acabado - Acabado seleccionado.
  * @param {(formData: FormData) => Promise<Object>} [params.submitCard]
  * @param {(errors: Object|Function) => void} params.setErrors
  * @param {(loading: boolean) => void} params.setSubmitLoading
@@ -461,6 +483,9 @@ export async function handleSubmitterSubmit({
     event,
     frontFile,
     backFile,
+    sessionId,
+    setName,
+    acabado,
     submitCard,
     setErrors,
     setSubmitLoading,
@@ -482,26 +507,23 @@ export async function handleSubmitterSubmit({
     setSubmitLoading(true)
 
     try {
-        const fd = buildSubmitterCreateFormData({ frontFile, backFile })
+        const fd = buildSubmitterCreateFormData({ frontFile, backFile, sessionId, setName, acabado })
 
         let response
 
         if (SUBMITTER_USE_MOCK || !submitCard) {
             console.log('Envío Submitter usando mock:', { frontFile, backFile })
             await new Promise((resolve) => setTimeout(resolve, 1400))
-            response = mockSubmitCoherenceFailure
+            response = mockSubmitWithGradingSuccess
         } else {
             response = await submitCard(fd)
         }
 
         if (!response?.ok) {
-            const derivationType = resolveDerivationType(response?.data)
-
-            if (derivationType) {
-                setGradingDerivation({
-                    type: derivationType,
-                    message: normalizeSubmitterErrorMessage(response?.message, null),
-                })
+            const backendErrors = response?.data?.errores
+            if (backendErrors && typeof backendErrors === 'object') {
+                const firstError = Object.values(backendErrors)[0]
+                setErrors({ submit: firstError || DEFAULT_SUBMIT_ERROR })
                 return
             }
 

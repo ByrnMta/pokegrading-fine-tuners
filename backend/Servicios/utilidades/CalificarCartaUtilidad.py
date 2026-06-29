@@ -52,6 +52,7 @@ class CalificarCartaUtilidad:
         evaluacion: EvaluacionCarta,
         set_name: Optional[str] = None,
         acabado: Optional[str] = None,
+        huella_imagenes: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Ejecuta el pipeline de calificacion completo."""
         errores = {}
@@ -78,6 +79,7 @@ class CalificarCartaUtilidad:
             return CalificarCartaUtilidad._manejar_caso_manual(
                 db, id_evaluacionCarta, id_sesion,
                 centering, corners, edges, surface, evaluacion,
+                huella_imagenes=huella_imagenes,
             )
 
         # Escalamiento de scores a subgrades 1.0-10.0
@@ -130,6 +132,7 @@ class CalificarCartaUtilidad:
             db=db, id_evaluacionCarta=id_evaluacionCarta,
             id_sesion=id_sesion,
             version_algoritmo=CalificarCartaUtilidad.ALGORITHM_VERSION,
+            huella_imagenes=huella_imagenes,
             centering_subgrade=centering_aj, corners_subgrade=corners_aj,
             edges_subgrade=edges_aj, surface_subgrade=surface_aj,
             grado_final=grado_final, uncertainty_band=uncertainty_band,
@@ -228,11 +231,12 @@ class CalificarCartaUtilidad:
         return round(max(CalificarCartaUtilidad.UNCERTAINTY_MIN, CalificarCartaUtilidad.UNCERTAINTY_FACTOR * (1.0 - confianza)), 2)
 
     @staticmethod
-    def _manejar_caso_manual(db, id_evaluacionCarta, id_sesion, centering, corners, edges, surface, evaluacion):
+    def _manejar_caso_manual(db, id_evaluacionCarta, id_sesion, centering, corners, edges, surface, evaluacion, huella_imagenes=None):
         repositorio = ResultadoCalificacionRepositorio()
         repositorio.crear_resultado(
             db=db, id_evaluacionCarta=id_evaluacionCarta, id_sesion=id_sesion,
             version_algoritmo=CalificarCartaUtilidad.ALGORITHM_VERSION,
+            huella_imagenes=huella_imagenes,
             centering_subgrade=CalificarCartaUtilidad._escalar(centering) if centering is not None else None,
             corners_subgrade=CalificarCartaUtilidad._escalar(corners) if corners is not None else None,
             edges_subgrade=CalificarCartaUtilidad._escalar(edges) if edges is not None else None,

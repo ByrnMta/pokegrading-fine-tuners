@@ -34,6 +34,7 @@ def enviar_evaluacion_carta(
 
     if 'errores' in resultado:
         # Si el servicio devuelve errores, se lanza una excepción HTTP con el detalle de los errores
-        raise HTTPException(status_code=resultado['errores']['status_code'], detail=resultado['errores'])
+        status_code = resultado['errores'].get('status_code', 400)
+        raise HTTPException(status_code=status_code, detail=resultado['errores'])
 
     return resultado

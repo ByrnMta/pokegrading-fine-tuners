@@ -7,6 +7,18 @@ from Modelos.BaselineCalibracion import BaselineCalibracion
 class ResultadoCalificacionRepositorio:
 
     @staticmethod
+    def obtener_por_huella(
+        db: Session, huella: str
+    ) -> Optional[ResultadoCalificacionCarta]:
+        """Idempotencia: devuelve el resultado existente si ya se procesaron estas imagenes."""
+        return (
+            db.query(ResultadoCalificacionCarta)
+            .filter(ResultadoCalificacionCarta.huella_imagenes == huella)
+            .first()
+        )
+
+
+    @staticmethod
     def obtener_por_sesion(
         db: Session, id_sesion: str
     ) -> Optional[ResultadoCalificacionCarta]:
@@ -50,6 +62,7 @@ class ResultadoCalificacionRepositorio:
         baseline_surface: Optional[float],
         tipo_revision: str,
         coherence_flag: str,
+        huella_imagenes: Optional[str] = None,
     ) -> ResultadoCalificacionCarta:
         """Crea y persiste un nuevo resultado de calificación."""
         resultado = ResultadoCalificacionCarta(
@@ -57,6 +70,7 @@ class ResultadoCalificacionRepositorio:
             id_sesion=id_sesion,
             version_algoritmo=version_algoritmo,
             centering_subgrade=centering_subgrade,
+            huella_imagenes=huella_imagenes,
             corners_subgrade=corners_subgrade,
             edges_subgrade=edges_subgrade,
             surface_subgrade=surface_subgrade,

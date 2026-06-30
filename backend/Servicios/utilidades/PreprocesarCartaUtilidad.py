@@ -4,7 +4,6 @@ import io
 import math
 from dataclasses import dataclass
 from typing import Optional, Tuple
-from PreprocesarCartaUtilidad_refact import _ordenar_puntos
 from fastapi import UploadFile
 
 import cv2
@@ -114,6 +113,8 @@ def analizar_carta(image: UploadFile, errores: dict) -> Tuple[Optional[float], O
     score_esquinas = calcular_score_esquinas(imagen_normalizada)
     score_bordes = calcular_score_bordes(imagen_normalizada)
     score_superficie = calcular_score_superficie(imagen_normalizada)
+
+    print(f"Scores: centrado={score_centrado}, esquinas={score_esquinas}, bordes={score_bordes}, superficie={score_superficie}")
 
     return score_centrado, score_esquinas, score_bordes, score_superficie
 

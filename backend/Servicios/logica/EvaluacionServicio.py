@@ -28,15 +28,16 @@ class EvaluacionCartaServicio:
 
         errores = {}
         try:
-            # ── Idempotencia combinada: misma sesión Y mismas imágenes.
-            #    Se calcula la huella y se busca un registro que coincida
-            #    simultáneamente con ambos criterios.
+            # Idempotencia combinada: misma sesión Y mismas imágenes.
+            # Se calcula la huella y se busca un registro que coincida
+            # simultáneamente con ambos criterios.
             repositorio_cal = ResultadoCalificacionRepositorio()
             toma_frontal.file.seek(0)
             frontal_bytes = toma_frontal.file.read()
             toma_reversa.file.seek(0)
             reversa_bytes = toma_reversa.file.read()
             huella_imagenes = hashlib.sha256(frontal_bytes + reversa_bytes).hexdigest()
+
             # Resetear los punteros para que el resto del flujo pueda leer las imagenes
             toma_frontal.file.seek(0)
             toma_reversa.file.seek(0)
@@ -44,6 +45,7 @@ class EvaluacionCartaServicio:
             resultado_existente = repositorio_cal.obtener_por_sesion_y_huella(
                 db, id_sesion, huella_imagenes
             )
+
             if resultado_existente is not None:
                 return {
                     "mensaje": "Esta sesion con estas imagenes ya fue procesada.",
@@ -127,8 +129,7 @@ class EvaluacionCartaServicio:
                 tipo_imagen="REVERSA"
             )
 
-
-            # ── Calificación de carta ────────────────────────────────────────
+            ################ Calificación de carta #######################
             resultado_calificacion = CalificarCartaUtilidad.calificar(
                 db=db,
                 id_evaluacionCarta=evaluacion.id,
@@ -179,6 +180,7 @@ class EvaluacionCartaServicio:
                 },
                 "calificacion": resultado_calificacion.get("calificacion"),
             }
+        
         except Exception as e:
             db.rollback()
             return {"errores": {"internal": f"Error interno: {str(e)}"}}
